@@ -1,0 +1,5 @@
+The included Web Player Demo level uses the CombineChildren script by Unity for optimization.
+This script combines all meshes of the same material into a single mesh and is included to improve the framerate in the demo level when using Unity Free.
+If you are using Unity Pro and have Static Batching enabled, remove or disable this script. Otherwise the level will mysteriously vanish when playing!
+If you are using Unity Pro, I highly recommend instead using Static Batching and Occlusion Culling to optimize performance.
+You are free to use the level as you see fit, as it is part of the package.
