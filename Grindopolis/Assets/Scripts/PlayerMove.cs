@@ -10,6 +10,7 @@ public class PlayerMove : NetworkBehaviour
 {
     // Public vars
     public bool isGrounded;
+
     public bool canDoubleJump;
     public bool isOnLadder;
     public float gravity = 1;
@@ -37,12 +38,13 @@ public class PlayerMove : NetworkBehaviour
     Vector3 moveDirHoriz;
     Vector3 moveDirVert;
     Vector3 moveDirUp;
-
+    Vector3 storedPos;
 
 
     // Use this for initialization
     void Start()
     {
+        Debug.Log("Player joined");
         nms = GameObject.Find("NetworkManager").GetComponent<NetworkManagerScript>();
         charControl = GetComponent<CharacterController>();
         pSounds = GetComponentInChildren<PlayerSounds>();
@@ -82,6 +84,18 @@ public class PlayerMove : NetworkBehaviour
 
         isGrounded = charControl.isGrounded;
 
+        // Check for footstep or hit ground sfx
+        if (isGrounded)
+        {
+            fallingSpeed = 0;
+
+            if ((Vector3.Distance(storedPos, transform.position) >= 3.5f))
+            {    
+                storedPos = transform.position;
+                CmdPlaySFX(0);
+            }
+        }
+
         if (Input.GetButtonDown("Jump"))
         {
             if (charControl.isGrounded)
@@ -91,7 +105,6 @@ public class PlayerMove : NetworkBehaviour
             else if (!hasDoubleJumped)
             {
                 Jump(true);
-                fallingSpeed = 0; // Reset stored falling speed to 0
                 hasDoubleJumped = true;
             }
         }
@@ -104,15 +117,6 @@ public class PlayerMove : NetworkBehaviour
         }
 
         // If we double jump, be sure to reset our falling speed
-
-        // Play "hit ground" sound when hitting ground
-        if (isGrounded)
-        {
-            if (fallingSpeed <= -35 && fallingSpeed >= -50)
-            {
-                // Heavier damage sound
-            }
-        }
 
     }
 
@@ -136,13 +140,15 @@ public class PlayerMove : NetworkBehaviour
         {
             jumping = true;
             moveDirUp.y = jumpForce;
-            pSounds.PlayJumpSound();
+            CmdPlaySFX(1);
         }
         else if (canDoubleJump)
         {
             moveDirUp.y = jumpForce * 1.25f;
-            pSounds.PlayDoubleJumpSound();
+            CmdPlaySFX(1);
         }
+
+        fallingSpeed = 0;
 
     }
     void MovePlayer(float speed)
@@ -273,6 +279,31 @@ public class PlayerMove : NetworkBehaviour
         {
             // If we don't hit anything, fall normally
             return false;
+        }
+
+    }
+
+    [Command]
+    void CmdPlaySFX(int a)
+    {
+        Debug.Log("CmdPlaySFX: Playing SFX " + a);
+        RpcPlaySFX(a);
+    }
+
+    [ClientRpc]
+    void RpcPlaySFX(int a)
+    {
+        // Play different sfx based on int
+        // 0 = Footsteps
+        // 1 = Jump
+        // 2 = Double jump
+        if (a == 0)
+        {
+            pSounds.PlayFootstepSound();
+        }
+        else if (a == 1)
+        {
+            pSounds.PlayJumpSound();
         }
 
     }

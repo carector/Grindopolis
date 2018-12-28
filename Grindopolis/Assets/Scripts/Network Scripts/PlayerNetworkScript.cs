@@ -89,6 +89,7 @@ public class PlayerNetworkScript : NetworkBehaviour { // Not MonoBehavior holy s
     //
     // RPCs are special functions that ONLY get executed on the clients
     // Useful for functions, but if its just changing a variable SyncVar is more appropriate
+
     [ClientRpc]
     void RpcChangePlayerName(string n)
     {

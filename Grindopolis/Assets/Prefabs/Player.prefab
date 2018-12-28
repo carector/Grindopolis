@@ -106,7 +106,7 @@ GameObject:
   - component: {fileID: 143585061835096574}
   - component: {fileID: 114307428971659114}
   - component: {fileID: 114965010525821002}
-  - component: {fileID: 114103924445416068}
+  - component: {fileID: 6168475785885170225}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -211,8 +211,8 @@ MonoBehaviour:
   gravity: 0.8
   maxFallSpeed: 100
   jumpForce: 10
-  runSpeed: 7
-  walkSpeed: 4
+  runSpeed: 8
+  walkSpeed: 5
   slopeMax: 0.1
   onPlatform: {fileID: 0}
   fallingSpeed: 50
@@ -249,7 +249,7 @@ MonoBehaviour:
     i15: 0
   m_ServerOnly: 0
   m_LocalPlayerAuthority: 1
---- !u!114 &114103924445416068
+--- !u!114 &6168475785885170225
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -412,8 +412,8 @@ AudioSource:
       inWeight: 0
       outWeight: 0.6091419
     - serializedVersion: 3
-      time: 0.23815227
-      value: 0.35725117
+      time: 0.4954536
+      value: 0.22352314
       inSlope: -0.83643264
       outSlope: -0.83643264
       tangentMode: 0
