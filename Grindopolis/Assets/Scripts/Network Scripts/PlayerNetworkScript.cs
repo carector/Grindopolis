@@ -12,10 +12,14 @@ public class PlayerNetworkScript : NetworkBehaviour { // Not MonoBehavior holy s
     // Hooks call functions when a value is changed - SYNCVAR WITH HOOK IS THE SAME AS AN RPC
     //[SyncVar(hook ="OnPlayerNameChanged")]
 
-    public string playerName = "Anonymous";
-    public int health;
-
+    public GameObject pObject;
     NetworkManagerScript nms;
+
+    [SyncVar]
+    public string playerName;
+
+    [SyncVar]
+    public int playerMatIndex;
 
     // Use this for initialization
     void Start() {
@@ -45,22 +49,6 @@ public class PlayerNetworkScript : NetworkBehaviour { // Not MonoBehavior holy s
         {
             return;
         }
-
-        if(Input.GetKeyDown(KeyCode.Q))
-        {
-            string n = "Grinder " + Random.Range(1, 100);
-
-            CmdChangePlayerName(n);
-        }
-    }
-    
-    // WARNING: If you use a hook on a SyncVar, our local value does NOT get automatically updated
-    void OnPlayerNameChanged(string newName)
-    {
-        Debug.Log("OnPlayerNameChanged: OldName = " + playerName + ", NewName: " + newName);
-
-        playerName = newName;
-        gameObject.name = "PlayerConnection [" + newName + "]";
     }
 
     // COMMANDS //
@@ -70,7 +58,8 @@ public class PlayerNetworkScript : NetworkBehaviour { // Not MonoBehavior holy s
     [Command] 
     void CmdSpawnPlayerController()
     {
-        GameObject pObject = Instantiate(PlayerControllerPrefab, new Vector3(Random.Range(-10, 10), 1, Random.Range(-5, -15)), Quaternion.identity);
+        pObject = Instantiate(PlayerControllerPrefab, new Vector3(Random.Range(-10, 10), 1, Random.Range(-5, -15)), Quaternion.identity);
+        pObject.GetComponent<PlayerController>().pns = this;
 
         // Tell the server to spawn the playercontroller for the player who just joined
         // "Spawn" instantiates an object for ALL CLIENTS
@@ -78,22 +67,10 @@ public class PlayerNetworkScript : NetworkBehaviour { // Not MonoBehavior holy s
         NetworkServer.SpawnWithClientAuthority(pObject, connectionToClient);
     }
 
-    [Command]
-    void CmdChangePlayerName(string n)
-    {
-        Debug.Log("CmdChangePlayerName: " + n);
-        RpcChangePlayerName(n);
-    }
-
     // RPC //
     //
     // RPCs are special functions that ONLY get executed on the clients
     // Useful for functions, but if its just changing a variable SyncVar is more appropriate
 
-    [ClientRpc]
-    void RpcChangePlayerName(string n)
-    {
-        playerName = n;
-        gameObject.name = "PlayerConnection [" + n + "]";
-    }
+    
 }

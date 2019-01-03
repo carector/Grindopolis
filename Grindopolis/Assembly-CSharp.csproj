@@ -64,11 +64,13 @@
     <Compile Include="Assets\3D Pixel Tiles\2D Pixel Tileset\Extras\SpriteSorter.cs" />
     <Compile Include="Assets\3D Pixel Tiles\2D Pixel Tileset\Extras\TopDownCharacter.cs" />
     <Compile Include="Assets\3D Pixel Tiles\Scripts\WaterAnimSpeed.cs" />
+    <Compile Include="Assets\PlayerNameDisplayer.cs" />
+    <Compile Include="Assets\PlayerUIManager.cs" />
     <Compile Include="Assets\Scripts\Network Scripts\BouncyBallScript.cs" />
     <Compile Include="Assets\Scripts\Network Scripts\NetworkManagerScript.cs" />
     <Compile Include="Assets\Scripts\Network Scripts\PlayerNetworkScript.cs" />
+    <Compile Include="Assets\Scripts\PlayerController.cs" />
     <Compile Include="Assets\Scripts\PlayerLook.cs" />
-    <Compile Include="Assets\Scripts\PlayerMove.cs" />
     <Compile Include="Assets\Scripts\PlayerSounds.cs" />
     <None Include="Assets\3D Pixel Tiles\2D Pixel Tileset\!Read Me! - On Layers and Tags.txt" />
     <None Include="Assets\3D Pixel Tiles\2D Pixel Tileset\Scene\!Read Me! - Level.txt" />

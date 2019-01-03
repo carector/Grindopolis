@@ -6,66 +6,68 @@ using UnityEngine.Networking;
 
 // thanks to Acacia Developer on youtube for providing the tutorial used to make the base for this
 
-public class PlayerMove : NetworkBehaviour
+public class PlayerController : NetworkBehaviour
 {
     // Public vars
-    public bool isGrounded;
+    [System.Serializable]
+    public class PlayerMovementSettings
+    {
+        public bool isGrounded;
+        public bool canMove = true;
+        public bool canDoubleJump;
+        public bool isOnLadder;
+        public float gravity = 1;
+        public float maxFallSpeed = 100;
+        public float jumpForce;
+        public float runSpeed;
+        public float walkSpeed;
+        public float slopeMax;
+        public GameObject onPlatform;
+        public float fallingSpeed;
+    }
 
-    public bool canDoubleJump;
-    public bool isOnLadder;
-    public float gravity = 1;
-    public float maxFallSpeed = 100;
-    public float jumpForce;
-    public float runSpeed;
-    public float walkSpeed;
-    public float slopeMax;
-    public GameObject onPlatform;
-    public float fallingSpeed;
+    public PlayerMovementSettings movementSettings;
+    public GameObject HUDPrefab;
+    public GameObject nameDisplayerPrefab;
+    public Material[] playerColors;
 
+    public Renderer bodyRenderer;
+    public PlayerNetworkScript pns; // lmao penis
 
     // Private vars
     private GameObject storedPlatform;
 
+
     // Vars
+    bool finishedSetup;
     bool jumping; // Used for the first frame of when the player jumps - prevents charControl.isGrounded from overwriting value before charControl.Move() is called
     bool hasDoubleJumped;
     float remainingJump;
 
+
     Camera cam;
     CharacterController charControl;
+
+    
     NetworkManagerScript nms;
     PlayerSounds pSounds;
+
     Vector3 moveDirHoriz;
     Vector3 moveDirVert;
     Vector3 moveDirUp;
     Vector3 storedPos;
+    
 
 
     // Use this for initialization
     void Start()
     {
-        Debug.Log("Player joined");
+        cam = GetComponentInChildren<Camera>();
         nms = GameObject.Find("NetworkManager").GetComponent<NetworkManagerScript>();
-        charControl = GetComponent<CharacterController>();
-        pSounds = GetComponentInChildren<PlayerSounds>();
+        pns = GameObject.Find("PlayerConnection(Clone)").GetComponent<PlayerNetworkScript>() ;
+        pns.name = "PlayerConnection" + nms.numConnectedPlayers;
 
-        // Make our jump and move values smaller so you don't have to enter miniscule values in the editor - it's stupid but it's not like anyone else is gonna find this (or will they? °.√•)
-        walkSpeed /= 30;
-        runSpeed /= 30;
-        jumpForce /= 30;
-
-        // Disable our camera if this is not our client player, as well as our audiolistener
-        // if the player is the server, for whatever reason the camera won't disable due to the player not having authority
-        // to bypass this, the server also checks to make sure there's at least one player connected before disabling the camera, in this case the server (i know this is fucking ASS but just roll with it)
-        if (!hasAuthority && nms.numConnectedPlayers != 0)
-        {
-            GetComponentInChildren<AudioListener>().enabled = false;
-            GetComponentInChildren<Camera>().enabled = false;
-
-            return;
-        }
-
-        nms.numConnectedPlayers++;
+        StartCoroutine(OnStartCoroutine());
     }
     void OnEnable()
     {
@@ -77,17 +79,17 @@ public class PlayerMove : NetworkBehaviour
     void Update()
     {
         // Make sure this is our client's player
-        if (!hasAuthority)
-        {
+        if (!hasAuthority || !finishedSetup)
+        {       
             return;
         }
 
-        isGrounded = charControl.isGrounded;
+        movementSettings.isGrounded = charControl.isGrounded;
 
         // Check for footstep or hit ground sfx
-        if (isGrounded)
+        if (movementSettings.isGrounded)
         {
-            fallingSpeed = 0;
+            movementSettings.fallingSpeed = 0;
 
             if ((Vector3.Distance(storedPos, transform.position) >= 3.5f))
             {    
@@ -96,7 +98,7 @@ public class PlayerMove : NetworkBehaviour
             }
         }
 
-        if (Input.GetButtonDown("Jump"))
+        if (Input.GetButtonDown("Jump") && movementSettings.canMove)
         {
             if (charControl.isGrounded)
             {
@@ -111,9 +113,9 @@ public class PlayerMove : NetworkBehaviour
 
         // Also check to see if we should receive falling damage
         // Increase falling speed if our current velocity is greater than what we have stored
-        if (charControl.velocity.y < fallingSpeed)
+        if (charControl.velocity.y < movementSettings.fallingSpeed)
         {
-            fallingSpeed = charControl.velocity.y;
+            movementSettings.fallingSpeed = charControl.velocity.y;
         }
 
         // If we double jump, be sure to reset our falling speed
@@ -124,31 +126,35 @@ public class PlayerMove : NetworkBehaviour
     private void FixedUpdate()
     {
         // Make sure this is our client's player
-        if (!hasAuthority)
+        if (!hasAuthority || !finishedSetup)
             return;
 
-        // If we're sprinting, move the player with our sprint speed.
-        if (Input.GetButton("Sprint"))
-            MovePlayer(runSpeed);
-        // Otherwise, move with the walk speed.
-        else
-            MovePlayer(walkSpeed);
+        // Make sure we can actually move first
+        if (movementSettings.canMove)
+        {
+            // If we're sprinting, move the player with our sprint speed.
+            if (Input.GetButton("Sprint"))
+                MovePlayer(movementSettings.runSpeed);
+            // Otherwise, move with the walk speed.
+            else
+                MovePlayer(movementSettings.walkSpeed);
+        }
     }
     void Jump(bool isDoubleJump)
     {
         if (!isDoubleJump)
         {
             jumping = true;
-            moveDirUp.y = jumpForce;
+            moveDirUp.y = movementSettings.jumpForce;
             CmdPlaySFX(1);
         }
-        else if (canDoubleJump)
+        else if (movementSettings.canDoubleJump)
         {
-            moveDirUp.y = jumpForce * 1.25f;
+            moveDirUp.y = movementSettings.jumpForce * 1.25f;
             CmdPlaySFX(1);
         }
 
-        fallingSpeed = 0;
+        movementSettings.fallingSpeed = 0;
 
     }
     void MovePlayer(float speed)
@@ -163,7 +169,7 @@ public class PlayerMove : NetworkBehaviour
         moveDirVert = transform.forward * vertical * speed;
 
         // Different if we're standing on a ladder
-        if (isOnLadder)
+        if (movementSettings.isOnLadder)
         {
             moveDirUp = transform.up * vertical * speed;
 
@@ -176,13 +182,13 @@ public class PlayerMove : NetworkBehaviour
 
 
         // If we're grounded and the player hasn't just pressed the jump key...
-        if ((charControl.isGrounded && !jumping && !isOnLadder))
+        if ((charControl.isGrounded && !jumping && !movementSettings.isOnLadder))
         {
             // Call SlopeCheck to see if we're standing on a sloping surface
             if (SlopeCheck())
             {
                 // Set our downward movement speed to equal to gravity if we're standing on a slope. This way, we won't end up "skipping" from having our downwards force be too low.
-                moveDirUp.y = -gravity;
+                moveDirUp.y = -movementSettings.gravity;
             }
             else
             {
@@ -195,25 +201,25 @@ public class PlayerMove : NetworkBehaviour
 
         }
         // Otherwise, subtract gravity from our downward speed
-        else if (!isOnLadder)
+        else if (!movementSettings.isOnLadder)
         {
             // Subtract gravity from our downward speed
-            if (moveDirUp.y <= maxFallSpeed)
+            if (moveDirUp.y <= movementSettings.maxFallSpeed)
             {
-                moveDirUp.y -= gravity * Time.deltaTime;
+                moveDirUp.y -= movementSettings.gravity * Time.deltaTime;
             }
             jumping = false;
         }
-        if (onPlatform != null)
+        if (movementSettings.onPlatform != null)
         {
-            if (storedPlatform != onPlatform)
+            if (storedPlatform != movementSettings.onPlatform)
             {
                 // For some reason, reloading the PlayerMove script will sort of reset the Character Controller's frame of reference, and it will move with playforms
                 // If you're having troubles sticking the player to a platform, make sure that 1. The scale is a perfect Vector3.one, 2. There aren't any conflicting colliders also being detected by the player
-                transform.parent = onPlatform.transform;
+                transform.parent = movementSettings.onPlatform.transform;
                 this.enabled = false;
                 this.enabled = true;
-                storedPlatform = onPlatform;
+                storedPlatform = movementSettings.onPlatform;
             }
         }
         else
@@ -257,11 +263,11 @@ public class PlayerMove : NetworkBehaviour
             // First, check to see if we're on a moving platform
             if (hit.collider.tag == "Platform")
             {
-                onPlatform = hit.collider.gameObject;
+                movementSettings.onPlatform = hit.collider.gameObject;
             }
             else
             {
-                onPlatform = null;
+                movementSettings.onPlatform = null;
             }
 
             // If the surface has an angle, set our gravity to be much larger
@@ -290,6 +296,12 @@ public class PlayerMove : NetworkBehaviour
         RpcPlaySFX(a);
     }
 
+    [Command]
+    public void CmdUpdatePlayerInfo(int materialIndex, string name)
+    {
+        RpcUpdatePlayerInfo(materialIndex, name);
+    }
+
     [ClientRpc]
     void RpcPlaySFX(int a)
     {
@@ -306,5 +318,71 @@ public class PlayerMove : NetworkBehaviour
             pSounds.PlayJumpSound();
         }
 
+    }
+
+    [ClientRpc]
+    void RpcUpdatePlayerInfo(int materialIndex, string name)
+    {
+        pns.playerName = name;
+        pns.playerMatIndex = materialIndex;
+
+        bodyRenderer.material = playerColors[materialIndex];
+    }
+
+    IEnumerator OnStartCoroutine()
+    {
+        yield return new WaitForSeconds(0.05f);
+
+        Debug.Log("Player joined");
+        charControl = GetComponent<CharacterController>();
+        pSounds = GetComponentInChildren<PlayerSounds>();
+
+        // Make our jump and move values smaller so you don't have to enter miniscule values in the editor - it's stupid but it's not like anyone else is gonna find this (or will they? °.√•)
+        movementSettings.walkSpeed /= 30;
+        movementSettings.runSpeed /= 30;
+        movementSettings.jumpForce /= 30;
+
+        // Disable our camera if this is not our client player, as well as our audiolistener
+        // if the player is the server, for whatever reason the camera won't disable due to the player not having authority
+        // to bypass this, the server also checks to make sure there's at least one player connected before disabling the camera, in this case the server (i know this is fucking ASS but just roll with it)
+        if (!hasAuthority)
+        {
+            // Change our name so other spawned players know we're a specific client's player
+            this.gameObject.name = "NonclientPlayer";
+
+            Debug.Log("Non-client player joined");
+            GetComponentInChildren<AudioListener>().enabled = false;
+
+            // Update our material based on what our playerNetworkScript has stored
+            bodyRenderer.material = playerColors[pns.playerMatIndex];
+
+            // Instantiate name displayer on any players that aren't the client's player
+            GameObject nameDisplayer = Instantiate(nameDisplayerPrefab, this.transform);
+            nameDisplayer.GetComponent<PlayerNameDisplayer>().thisPlayer = this;
+            nameDisplayer.transform.localPosition = new Vector3(0, 1.75f, 0);
+        }
+        // This code runs if the current playercontroller is the one actually being controlled by a client
+        else if (hasAuthority || nms.numConnectedPlayers == 0)
+        {
+            cam.enabled = true;
+
+            // Change our name so other spawned players know we're a specific client's player
+            this.gameObject.name = "ClientPlayer";
+
+            GameObject hud = Instantiate(HUDPrefab, this.transform);
+            hud.GetComponent<Canvas>().worldCamera = cam;
+            hud.GetComponent<Canvas>().planeDistance = 0.15f;
+
+            PlayerUIManager uiMan = hud.GetComponent<PlayerUIManager>();
+            uiMan.player = this.gameObject;
+        }
+
+        nms.numConnectedPlayers++;
+        print("Player " + nms.numConnectedPlayers + " setup complete.");
+
+        if(pns.playerName == "")
+            pns.playerName = "Grinder " + nms.numConnectedPlayers;
+
+        finishedSetup = true;
     }
 }
