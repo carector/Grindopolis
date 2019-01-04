@@ -27,8 +27,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1206103593293330}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.0162, z: 0}
-  m_LocalScale: {x: 0.34343, y: 1.0756202, z: 0.34343}
+  m_LocalPosition: {x: 0, y: -0.0936, z: 0}
+  m_LocalScale: {x: 0.34343, y: 1.1854204, z: 0.34343}
   m_Children: []
   m_Father: {fileID: 4547513382153124}
   m_RootOrder: 2
@@ -191,7 +191,7 @@ CharacterController:
   m_Radius: 0.5
   m_SlopeLimit: 45
   m_StepOffset: 0.3
-  m_SkinWidth: 0.08
+  m_SkinWidth: 0.3
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &114307428971659114

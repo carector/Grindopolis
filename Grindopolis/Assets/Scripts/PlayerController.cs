@@ -118,7 +118,7 @@ public class PlayerController : NetworkBehaviour
             movementSettings.fallingSpeed = charControl.velocity.y;
         }
 
-        // If we double jump, be sure to reset our falling speed
+        // Constantly use raycast to check for grabbable objects
 
     }
 
@@ -289,6 +289,22 @@ public class PlayerController : NetworkBehaviour
 
     }
 
+    void CheckForPickups()
+    {
+        RaycastHit hit;
+        Debug.Log("Checking for objects...");
+        Debug.DrawRay(cam.transform.position, transform.TransformDirection(Vector3.forward * 10), Color.red);
+
+        if (Physics.Raycast(cam.transform.position, transform.TransformDirection(Vector3.forward*10), out hit))
+        {
+            if(hit.collider.tag == "Pickup")
+            {
+                Debug.Log("Hit object");
+            }
+        }
+    }
+
+
     [Command]
     void CmdPlaySFX(int a)
     {
@@ -300,6 +316,12 @@ public class PlayerController : NetworkBehaviour
     public void CmdUpdatePlayerInfo(int materialIndex, string name)
     {
         RpcUpdatePlayerInfo(materialIndex, name);
+    }
+
+    [Command]
+    void CmdPickupObject(Transform pickup)
+    {
+        RpcPickupObject(pickup);
     }
 
     [ClientRpc]
@@ -327,6 +349,12 @@ public class PlayerController : NetworkBehaviour
         pns.playerMatIndex = materialIndex;
 
         bodyRenderer.material = playerColors[materialIndex];
+    }
+
+    [ClientRpc]
+    void RpcPickupObject(Transform pickup)
+    {
+        pickup.transform.parent = this.transform;
     }
 
     IEnumerator OnStartCoroutine()
