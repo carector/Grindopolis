@@ -29,10 +29,12 @@ public class PlayerController : NetworkBehaviour
     public PlayerMovementSettings movementSettings;
     public GameObject HUDPrefab;
     public GameObject nameDisplayerPrefab;
+    public GameObject heldObject;
     public Material[] playerColors;
 
     public Renderer bodyRenderer;
     public PlayerNetworkScript pns; // lmao penis
+    public Transform heldObjectFocus;
 
     // Private vars
     private GameObject storedPlatform;
@@ -40,6 +42,7 @@ public class PlayerController : NetworkBehaviour
 
     // Vars
     bool finishedSetup;
+    bool isHoldingObject;
     bool jumping; // Used for the first frame of when the player jumps - prevents charControl.isGrounded from overwriting value before charControl.Move() is called
     bool hasDoubleJumped;
     float remainingJump;
@@ -51,13 +54,13 @@ public class PlayerController : NetworkBehaviour
     
     NetworkManagerScript nms;
     PlayerSounds pSounds;
+    PlayerUIManager uiMan;
 
     Vector3 moveDirHoriz;
     Vector3 moveDirVert;
     Vector3 moveDirUp;
     Vector3 storedPos;
     
-
 
     // Use this for initialization
     void Start()
@@ -118,7 +121,28 @@ public class PlayerController : NetworkBehaviour
             movementSettings.fallingSpeed = charControl.velocity.y;
         }
 
-        // Constantly use raycast to check for grabbable objects
+        // Constantly use raycast to check for grabbable objects and NPCs
+        RaycastCheck();
+
+        // If we're holding an object, we can either drop it or throw it
+        if(isHoldingObject)
+        {
+            Debug.Log(cam.GetComponent<Rigidbody>().velocity);
+            if(Input.GetKeyDown(KeyCode.R))
+            {
+                heldObject.transform.parent = null;
+                heldObject.GetComponent<Rigidbody>().AddForce(cam.transform.TransformDirection(cam.GetComponent<Rigidbody>().velocity));
+                heldObject = null;
+                isHoldingObject = false;
+            }
+            else if(Input.GetKeyDown(KeyCode.F))
+            {
+                heldObject.transform.parent = null;
+                heldObject.GetComponent<Rigidbody>().AddForce(cam.transform.TransformDirection(Vector3.forward * 250) + cam.GetComponent<Rigidbody>().velocity);
+                heldObject = null;
+                isHoldingObject = false;
+            }
+        }
 
     }
 
@@ -289,17 +313,55 @@ public class PlayerController : NetworkBehaviour
 
     }
 
-    void CheckForPickups()
+    void RaycastCheck()
     {
         RaycastHit hit;
-        Debug.Log("Checking for objects...");
-        Debug.DrawRay(cam.transform.position, transform.TransformDirection(Vector3.forward * 10), Color.red);
+        Debug.Log("Checking...");
+        Debug.DrawRay(cam.transform.position, cam.transform.TransformDirection(Vector3.forward * 2.5f), Color.red);
 
-        if (Physics.Raycast(cam.transform.position, transform.TransformDirection(Vector3.forward*10), out hit))
+        // Automatically disable crosshair - if something is hit, it will override this
+        uiMan.DisableCrosshair();
+
+        if(!isHoldingObject)
+            uiMan.DisplayHintText("");
+
+        if (Physics.Raycast(cam.transform.position, cam.transform.TransformDirection(Vector3.forward), out hit, 8))
         {
-            if(hit.collider.tag == "Pickup")
+            if (hit.collider.tag == "Pickup" && !isHoldingObject)
             {
-                Debug.Log("Hit object");
+                uiMan.EnableCrosshair();
+                PickupScript pickup = hit.collider.GetComponent<PickupScript>();
+
+                uiMan.EnableCrosshair();
+                uiMan.DisplayHintText("Press E to pick up " + pickup.pickupName);
+
+                if (Input.GetKeyDown(KeyCode.E))
+                {
+                    uiMan.DisplayHintText("Press R to drop Press F to throw");
+                    pickup.focus = heldObjectFocus;
+                    heldObject = pickup.gameObject;
+                    pickup.transform.parent = this.transform;
+
+                    isHoldingObject = true;
+                }
+            }
+
+            else if(hit.collider.tag == "NPC")
+            {
+                uiMan.EnableCrosshair();
+                InteractableNPC npc = hit.collider.GetComponent<InteractableNPC>();
+
+                uiMan.DisplayHintText("Press E to talk to " + npc.name);
+
+                if (Input.GetKeyDown(KeyCode.E))
+                {
+                    uiMan.DisplayDialog(npc.name, npc.line1, npc.line2, npc.line3);
+                }
+            }
+            else
+            {
+                uiMan.ResetDialogWindow();
+                uiMan.StopAllCoroutines();
             }
         }
     }
@@ -319,9 +381,9 @@ public class PlayerController : NetworkBehaviour
     }
 
     [Command]
-    void CmdPickupObject(Transform pickup)
+    void CmdPickupObject()
     {
-        RpcPickupObject(pickup);
+        RpcPickupObject();
     }
 
     [ClientRpc]
@@ -352,9 +414,9 @@ public class PlayerController : NetworkBehaviour
     }
 
     [ClientRpc]
-    void RpcPickupObject(Transform pickup)
+    void RpcPickupObject()
     {
-        pickup.transform.parent = this.transform;
+       //pickup.transform.parent = this.transform;
     }
 
     IEnumerator OnStartCoroutine()
@@ -398,11 +460,16 @@ public class PlayerController : NetworkBehaviour
             this.gameObject.name = "ClientPlayer";
 
             GameObject hud = Instantiate(HUDPrefab, this.transform);
-            hud.GetComponent<Canvas>().worldCamera = cam;
-            hud.GetComponent<Canvas>().planeDistance = 0.15f;
-
-            PlayerUIManager uiMan = hud.GetComponent<PlayerUIManager>();
+            uiMan = hud.GetComponent<PlayerUIManager>();
             uiMan.player = this.gameObject;
+
+            /*
+            uiMan.hudCanvas.worldCamera = cam;
+            uiMan.hudCanvas.planeDistance = 0.15f;
+            uiMan.menuCanvas.worldCamera = cam;
+            uiMan.menuCanvas.planeDistance = 0.15f;
+            */
+            
         }
 
         nms.numConnectedPlayers++;

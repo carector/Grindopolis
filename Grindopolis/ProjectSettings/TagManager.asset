@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Platform
   - Pickup
+  - NPC
   layers:
   - Default
   - TransparentFX

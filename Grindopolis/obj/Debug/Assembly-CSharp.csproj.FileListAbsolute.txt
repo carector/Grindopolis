@@ -520,3 +520,5 @@ C:\Users\Basel\Documents\Grindopolis\Grindopolis\obj\Debug\Assembly-CSharp.cspro
 C:\Users\Basel\Documents\Grindopolis\Grindopolis\obj\Debug\Assembly-CSharp.csproj.CopyComplete
 C:\Users\Basel\Documents\Grindopolis\Grindopolis\obj\Debug\Assembly-CSharp.dll
 C:\Users\Basel\Documents\Grindopolis\Grindopolis\obj\Debug\Assembly-CSharp.pdb
+C:\Users\Basel\Documents\Grindopolis\Grindopolis\Temp\bin\Debug\UnityEditor.UI.dll
+C:\Users\Basel\Documents\Grindopolis\Grindopolis\Temp\bin\Debug\UnityEditor.UI.xml
