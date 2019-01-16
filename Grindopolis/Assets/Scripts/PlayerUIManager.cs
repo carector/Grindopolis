@@ -21,8 +21,8 @@ public class PlayerUIManager : MonoBehaviour
 
     public GameObject player;
     public Renderer playerBodyRenderer;
-    
 
+    InteractableNPC storedNpc;
     AudioSource audio;
     PlayerController pc;
     PlayerLook pl;
@@ -49,9 +49,11 @@ public class PlayerUIManager : MonoBehaviour
 
         audio = GetComponent<AudioSource>();
         inputf = GetComponentInChildren<InputField>();
+        inputf.enabled = false;
         pc = player.GetComponent<PlayerController>();
         pl = player.GetComponentInChildren<PlayerLook>();
         drop = GetComponentInChildren<Dropdown>();
+        drop.enabled = false;
         menuCanvas = GameObject.Find("MenuCanvas").GetComponent<Canvas>();
         hudCanvas = GameObject.Find("HUDCanvas").GetComponent<Canvas>();
         menuCanvas.enabled = false;
@@ -65,6 +67,9 @@ public class PlayerUIManager : MonoBehaviour
         {
             if (!menuOpen)
             {
+                inputf.enabled = true;
+                drop.enabled = true;
+
                 pl.enabled = false;
                 pc.movementSettings.canMove = false;
 
@@ -73,6 +78,9 @@ public class PlayerUIManager : MonoBehaviour
             }
             else
             {
+                inputf.enabled = false;
+                drop.enabled = false;
+
                 inputf.text = playerName;
 
                 pl.enabled = true;
@@ -82,6 +90,13 @@ public class PlayerUIManager : MonoBehaviour
                 menuOpen = false;
             }
         }
+
+        // Check to see if the player has moved far enough away from the NPC it has just interacted with - this is in order to reset the dialog box
+        if (storedNpc != null && Vector3.Distance(pc.transform.position, storedNpc.transform.position) >= 10)
+        {
+            ResetDialogWindow();
+        }
+
     }
     public void ResetDialogWindow()
     {
@@ -119,17 +134,19 @@ public class PlayerUIManager : MonoBehaviour
         crosshair.enabled = false;
     }
 
-    public void DisplayDialog(string name, string a, string b, string c)
+    public void DisplayDialog(InteractableNPC npc)
     {
-        StartCoroutine(DisplayDialogEnum(name, a, b, c));
+        StartCoroutine(DisplayDialogEnum(npc));
     }
-    IEnumerator DisplayDialogEnum(string name, string a, string b, string c)
+    IEnumerator DisplayDialogEnum(InteractableNPC npc)
     {
+        storedNpc = npc;
+
         line1.text = "";
         line2.text = "";
         line3.text = "";
 
-        if(name == "")
+        if(npc.name == "")
         {
             dialogNameBg.color = Color.clear;
             lineName.text = "";
@@ -137,7 +154,7 @@ public class PlayerUIManager : MonoBehaviour
         else
         {
             dialogNameBg.color = Color.white;
-            lineName.text = name;
+            lineName.text = npc.name;
         }
 
         dialogBg.anchoredPosition = new Vector2(267.8f, -192.1f);
@@ -150,20 +167,20 @@ public class PlayerUIManager : MonoBehaviour
 
         dialogBg.anchoredPosition = new Vector2(-267.8f, -192.1f);
 
-        line1.text = a;
+        line1.text = npc.line1;
         audio.PlayOneShot(typeSound);
         yield return new WaitForSeconds(0.35f);
 
-        if (b != "")
+        if (npc.line2 != "")
         {
-            line2.text = b;
+            line2.text = npc.line2;
             audio.PlayOneShot(typeSound);
             yield return new WaitForSeconds(0.35f);
         }
 
-        if (c != "")
+        if (npc.line3 != "")
         {
-            line3.text = c;
+            line3.text = npc.line3;
             audio.PlayOneShot(typeSound);
             yield return new WaitForSeconds(0.35f);
         }

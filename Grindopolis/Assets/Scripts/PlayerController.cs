@@ -59,7 +59,12 @@ public class PlayerController : NetworkBehaviour
     Vector3 moveDirHoriz;
     Vector3 moveDirVert;
     Vector3 moveDirUp;
-    Vector3 storedPos;
+
+    Vector3 currentPos;
+    Vector3 previousPos;
+    Vector3 storedVelocity;
+
+    Vector3 footstepPos;
     
 
     // Use this for initialization
@@ -69,6 +74,10 @@ public class PlayerController : NetworkBehaviour
         nms = GameObject.Find("NetworkManager").GetComponent<NetworkManagerScript>();
         pns = GameObject.Find("PlayerConnection(Clone)").GetComponent<PlayerNetworkScript>() ;
         pns.name = "PlayerConnection" + nms.numConnectedPlayers;
+
+        // Initialize positions
+        currentPos = transform.position;
+        previousPos = transform.position;
 
         StartCoroutine(OnStartCoroutine());
     }
@@ -89,14 +98,20 @@ public class PlayerController : NetworkBehaviour
 
         movementSettings.isGrounded = charControl.isGrounded;
 
+        // Update our current position
+        currentPos = transform.position;
+
+        // Update our velocity based on our position values
+        storedVelocity = (currentPos - previousPos) / Time.deltaTime;
+
         // Check for footstep or hit ground sfx
         if (movementSettings.isGrounded)
         {
             movementSettings.fallingSpeed = 0;
 
-            if ((Vector3.Distance(storedPos, transform.position) >= 3.5f))
+            if ((Vector3.Distance(footstepPos, transform.position) >= 3.5f))
             {    
-                storedPos = transform.position;
+                footstepPos = transform.position;
                 CmdPlaySFX(0);
             }
         }
@@ -127,22 +142,27 @@ public class PlayerController : NetworkBehaviour
         // If we're holding an object, we can either drop it or throw it
         if(isHoldingObject)
         {
-            Debug.Log(cam.GetComponent<Rigidbody>().velocity);
             if(Input.GetKeyDown(KeyCode.R))
             {
+                Debug.Log(storedVelocity);
+
                 heldObject.transform.parent = null;
-                heldObject.GetComponent<Rigidbody>().AddForce(cam.transform.TransformDirection(cam.GetComponent<Rigidbody>().velocity));
+                heldObject.GetComponent<Rigidbody>().velocity = storedVelocity;
                 heldObject = null;
                 isHoldingObject = false;
             }
             else if(Input.GetKeyDown(KeyCode.F))
             {
                 heldObject.transform.parent = null;
-                heldObject.GetComponent<Rigidbody>().AddForce(cam.transform.TransformDirection(Vector3.forward * 250) + cam.GetComponent<Rigidbody>().velocity);
+                heldObject.GetComponent<Rigidbody>().velocity = storedVelocity;
+                heldObject.GetComponent<Rigidbody>().AddForce(cam.transform.TransformDirection(Vector3.forward * 500));
                 heldObject = null;
                 isHoldingObject = false;
             }
         }
+
+        // Update our previous position with our current position, since it will no longer be current next frame
+        previousPos = currentPos;
 
     }
 
@@ -355,7 +375,7 @@ public class PlayerController : NetworkBehaviour
 
                 if (Input.GetKeyDown(KeyCode.E))
                 {
-                    uiMan.DisplayDialog(npc.name, npc.line1, npc.line2, npc.line3);
+                    uiMan.DisplayDialog(npc);
                 }
             }
             else
