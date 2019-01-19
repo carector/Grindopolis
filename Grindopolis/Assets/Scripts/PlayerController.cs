@@ -47,6 +47,7 @@ public class PlayerController : NetworkBehaviour
     bool hasDoubleJumped;
     float remainingJump;
 
+    Rigidbody pickupToJumpOn;
 
     Camera cam;
     CharacterController charControl;
@@ -186,18 +187,31 @@ public class PlayerController : NetworkBehaviour
     }
     void Jump(bool isDoubleJump)
     {
+        // Check to see if this is a midair platform we're jumping off of
+
+        RaycastHit hit;
+        Vector3 rayStart = new Vector3(transform.position.x, transform.position.y - 1.01f, transform.position.z);
+
+        if (Physics.Raycast(rayStart, -transform.up, out hit, 1f)) // 0.2f is a rough estimate
+        {
+            if (hit.collider.tag == "Pickup")
+            {
+                pickupToJumpOn = hit.collider.GetComponent<Rigidbody>();
+                pickupToJumpOn.AddForce(-Vector3.up * 100);
+                pickupToJumpOn.AddTorque(Random.Range(0, 100), Random.Range(0, 100), Random.Range(0, 100));
+            }
+        }
         if (!isDoubleJump)
         {
             jumping = true;
             moveDirUp.y = movementSettings.jumpForce;
-            CmdPlaySFX(1);
         }
         else if (movementSettings.canDoubleJump)
         {
             moveDirUp.y = movementSettings.jumpForce * 1.25f;
-            CmdPlaySFX(1);
         }
 
+        CmdPlaySFX(1);
         movementSettings.fallingSpeed = 0;
 
     }
@@ -294,6 +308,7 @@ public class PlayerController : NetworkBehaviour
     {
 
     }
+
     bool SlopeCheck() // Returns true if a slope is located below the player. Returns false if otherwise, so we can fall normally.
     {
         RaycastHit hit;
@@ -412,7 +427,7 @@ public class PlayerController : NetworkBehaviour
         // Play different sfx based on int
         // 0 = Footsteps
         // 1 = Jump
-        // 2 = Double jump
+        // 2 = Pickup Jump (To show you ain't fuckin around)
         if (a == 0)
         {
             pSounds.PlayFootstepSound();
@@ -420,6 +435,10 @@ public class PlayerController : NetworkBehaviour
         else if (a == 1)
         {
             pSounds.PlayJumpSound();
+        }
+        else if(a == 2)
+        {
+            pSounds.PlayDoubleJumpSound();
         }
 
     }

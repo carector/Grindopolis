@@ -32,7 +32,11 @@ public class PickupScript : MonoBehaviour
         }
         else
         {
-            col.enabled = true;
+            if(col.enabled == false)
+            {
+                col.enabled = false;
+                col.enabled = true;
+            }
             rb.useGravity = true;
         }
     }

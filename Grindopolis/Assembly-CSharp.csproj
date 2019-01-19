@@ -66,6 +66,7 @@
     <Compile Include="Assets\3D Pixel Tiles\Scripts\WaterAnimSpeed.cs" />
     <Compile Include="Assets\PickupScript.cs" />
     <Compile Include="Assets\Scripts\InteractableNPC.cs" />
+    <Compile Include="Assets\Scripts\MusicTransitionTrigger.cs" />
     <Compile Include="Assets\Scripts\Network Scripts\BouncyBallScript.cs" />
     <Compile Include="Assets\Scripts\Network Scripts\NetworkManagerScript.cs" />
     <Compile Include="Assets\Scripts\Network Scripts\PlayerNetworkScript.cs" />
