@@ -38,6 +38,8 @@ public class PlayerUIManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        Cursor.visible = false;
+
         line1 = GameObject.Find("DialogLine1").GetComponent<Text>();
         line2 = GameObject.Find("DialogLine2").GetComponent<Text>();
         line3 = GameObject.Find("DialogLine3").GetComponent<Text>();
@@ -75,6 +77,7 @@ public class PlayerUIManager : MonoBehaviour
 
                 menuCanvas.enabled = true;
                 menuOpen = true;
+                Cursor.visible = true;
             }
             else
             {
@@ -88,6 +91,7 @@ public class PlayerUIManager : MonoBehaviour
 
                 menuCanvas.enabled = false;
                 menuOpen = false;
+                Cursor.visible = false;
             }
         }
 

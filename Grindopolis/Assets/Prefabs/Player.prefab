@@ -238,6 +238,8 @@ MonoBehaviour:
   bodyRenderer: {fileID: 23640930878891116}
   pns: {fileID: 0}
   heldObjectFocus: {fileID: 6111869694782468639}
+  leftMouseProjectile: {fileID: 1214669110457394, guid: 33d0e56127aada94592732528533915b,
+    type: 3}
 --- !u!114 &114965010525821002
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -359,7 +361,7 @@ Camera:
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 823
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0

@@ -35,6 +35,7 @@ public class PlayerController : NetworkBehaviour
     public Renderer bodyRenderer;
     public PlayerNetworkScript pns; // lmao penis
     public Transform heldObjectFocus;
+    public GameObject leftMouseProjectile;
 
     // Private vars
     private GameObject storedPlatform;
@@ -66,7 +67,8 @@ public class PlayerController : NetworkBehaviour
     Vector3 storedVelocity;
 
     Vector3 footstepPos;
-    
+
+    PickupScript pickup;
 
     // Use this for initialization
     void Start()
@@ -119,7 +121,7 @@ public class PlayerController : NetworkBehaviour
 
         if (Input.GetButtonDown("Jump") && movementSettings.canMove)
         {
-            if (charControl.isGrounded)
+            if (charControl.isGrounded && !SlopeCheck())
             {
                 Jump(false);
             }
@@ -129,6 +131,16 @@ public class PlayerController : NetworkBehaviour
                 hasDoubleJumped = true;
             }
         }
+
+        /*if(Input.GetButtonDown("Fire1") && heldObject == null)
+        {
+            GameObject proj = Instantiate(leftMouseProjectile, heldObjectFocus);
+            proj.transform.parent = null;
+            proj.GetComponent<Rigidbody>().AddRelativeForce(-cam.transform.right * 1000);
+            NetworkServer.Spawn(proj);
+
+        }
+        */
 
         // Also check to see if we should receive falling damage
         // Increase falling speed if our current velocity is greater than what we have stored
@@ -150,6 +162,8 @@ public class PlayerController : NetworkBehaviour
                 heldObject.transform.parent = null;
                 heldObject.GetComponent<Rigidbody>().velocity = storedVelocity;
                 heldObject = null;
+
+                CmdDropObject(pickup);
                 isHoldingObject = false;
             }
             else if(Input.GetKeyDown(KeyCode.F))
@@ -158,6 +172,8 @@ public class PlayerController : NetworkBehaviour
                 heldObject.GetComponent<Rigidbody>().velocity = storedVelocity;
                 heldObject.GetComponent<Rigidbody>().AddForce(cam.transform.TransformDirection(Vector3.forward * 500));
                 heldObject = null;
+
+                CmdDropObject(pickup);
                 isHoldingObject = false;
             }
         }
@@ -317,7 +333,7 @@ public class PlayerController : NetworkBehaviour
         Vector3 rayStart = new Vector3(transform.position.x, transform.position.y - 1.01f, transform.position.z);
 
         // Raycast should extend to the maximum angle the player can walk up (45 degrees)
-        if (Physics.Raycast(rayStart, -transform.up, out hit, 0.2f)) // 0.2f is a rough estimate
+        if (Physics.Raycast(rayStart, -transform.up, out hit, 0.1f)) // 0.2f is a rough estimate
         {
             // First, check to see if we're on a moving platform
             if (hit.collider.tag == "Platform")
@@ -351,7 +367,6 @@ public class PlayerController : NetworkBehaviour
     void RaycastCheck()
     {
         RaycastHit hit;
-        Debug.Log("Checking...");
         Debug.DrawRay(cam.transform.position, cam.transform.TransformDirection(Vector3.forward * 2.5f), Color.red);
 
         // Automatically disable crosshair - if something is hit, it will override this
@@ -365,19 +380,22 @@ public class PlayerController : NetworkBehaviour
             if (hit.collider.tag == "Pickup" && !isHoldingObject)
             {
                 uiMan.EnableCrosshair();
-                PickupScript pickup = hit.collider.GetComponent<PickupScript>();
+                pickup = hit.collider.GetComponent<PickupScript>();
 
-                uiMan.EnableCrosshair();
-                uiMan.DisplayHintText("Press E to pick up " + pickup.pickupName);
-
-                if (Input.GetKeyDown(KeyCode.E))
+                if (pickup.holder == null)
                 {
-                    uiMan.DisplayHintText("Press R to drop Press F to throw");
-                    pickup.focus = heldObjectFocus;
-                    heldObject = pickup.gameObject;
-                    pickup.transform.parent = this.transform;
+                    uiMan.EnableCrosshair();
+                    uiMan.DisplayHintText("Press E to pick up " + pickup.pickupName);
 
-                    isHoldingObject = true;
+                    if (Input.GetKeyDown(KeyCode.E))
+                    {
+                        uiMan.DisplayHintText("Press R to drop Press F to throw");
+                        heldObject = pickup.gameObject;
+
+                        CmdPickupObject(pickup);
+
+                        isHoldingObject = true;
+                    }
                 }
             }
 
@@ -405,7 +423,6 @@ public class PlayerController : NetworkBehaviour
     [Command]
     void CmdPlaySFX(int a)
     {
-        Debug.Log("CmdPlaySFX: Playing SFX " + a);
         RpcPlaySFX(a);
     }
 
@@ -416,9 +433,14 @@ public class PlayerController : NetworkBehaviour
     }
 
     [Command]
-    void CmdPickupObject()
+    void CmdPickupObject(PickupScript pickup)
     {
-        RpcPickupObject();
+        RpcPickupObject(pickup);
+    }
+    [Command]
+    void CmdDropObject(PickupScript pickup)
+    {
+        RpcDropObject(pickup);
     }
 
     [ClientRpc]
@@ -453,11 +475,20 @@ public class PlayerController : NetworkBehaviour
     }
 
     [ClientRpc]
-    void RpcPickupObject()
+    void RpcPickupObject(PickupScript pickup)
     {
-       //pickup.transform.parent = this.transform;
+        Debug.Log("Picked up object");
+        pickup.isHeld = true;
+        pickup.holder = this.gameObject;
+        pickup.transform.parent = this.transform;
     }
-
+    [ClientRpc]
+    void RpcDropObject(PickupScript pickup)
+    {
+        pickup.isHeld = false;
+        pickup.holder = null;
+        pickup.transform.parent = null;
+    }
     IEnumerator OnStartCoroutine()
     {
         yield return new WaitForSeconds(0.05f);

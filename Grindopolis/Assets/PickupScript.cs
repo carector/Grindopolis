@@ -1,12 +1,19 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
-public class PickupScript : MonoBehaviour
+public class PickupScript : NetworkBehaviour
 {
+    [SyncVar]
+    public bool isHeld;
+
     public string pickupName;
 
-    public Transform focus;
+    [SyncVar]
+    public GameObject holder;
+
+    Transform focus;
 
     Rigidbody rb;
     Collider col;
@@ -21,8 +28,10 @@ public class PickupScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if(transform.parent != null && transform.parent.name == "ClientPlayer")
+        if(isHeld)
         {
+            focus = holder.GetComponent<PlayerController>().heldObjectFocus;
+
             rb.useGravity = false;
             col.enabled = false;
             transform.position = Vector3.Lerp(transform.position, focus.position, 0.25f);
@@ -32,6 +41,8 @@ public class PickupScript : MonoBehaviour
         }
         else
         {
+            focus = null;
+
             if(col.enabled == false)
             {
                 col.enabled = false;

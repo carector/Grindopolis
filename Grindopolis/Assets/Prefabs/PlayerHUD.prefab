@@ -817,8 +817,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 668, y: 169}
-  m_SizeDelta: {x: 1336, y: 338}
+  m_AnchoredPosition: {x: 310, y: 358.5}
+  m_SizeDelta: {x: 620, y: 717}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!223 &8125378729287798400
 Canvas:
@@ -1285,7 +1285,7 @@ MonoBehaviour:
   glintEffect: 0
   glintVertex: 2
   glintWidth: 0
-  glintColor: {r: 0, g: 0, b: 0, a: 0}
+  glintColor: {r: 1, g: 1, b: 1, a: 0}
 --- !u!1 &3472915567779758219
 GameObject:
   m_ObjectHideFlags: 0
@@ -1875,8 +1875,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 668, y: 169}
-  m_SizeDelta: {x: 1336, y: 338}
+  m_AnchoredPosition: {x: 310, y: 358.5}
+  m_SizeDelta: {x: 620, y: 717}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!223 &4447721231912168217
 Canvas:

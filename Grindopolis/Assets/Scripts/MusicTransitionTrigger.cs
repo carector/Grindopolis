@@ -9,26 +9,29 @@ public class MusicTransitionTrigger : MonoBehaviour
     public AudioSource audioToFadeOut;
     public AudioSource audioToFadeIn;
     public float fadeSpeed;
+    public float targetVolume = 0.5f;
 
     private void OnTriggerEnter(Collider other)
     {
         if(other.gameObject.name == "ClientPlayer")
         {
             // Begin by stopping all running coroutines, so we don't have two transition triggers competing for superiority
+            Debug.Log("Player entered transition zone");
             StartCoroutine(TransitionMusic());
         }
     }
 
     IEnumerator TransitionMusic()
     {
-        while(audioToFadeIn.volume < 1)
+        while(audioToFadeIn.volume < targetVolume)
         {
-            audioToFadeOut.volume -= Time.deltaTime * fadeSpeed * 0.1f;
+            audioToFadeOut.volume -= Time.deltaTime * fadeSpeed * 0.2f;
             audioToFadeIn.volume += Time.deltaTime * fadeSpeed * 0.1f;
             yield return null;
         }
 
         audioToFadeOut.volume = 0;
-        audioToFadeIn.volume = 1;
+        audioToFadeIn.volume = targetVolume;
+        Debug.Log("Completed transition");
     }
 }
