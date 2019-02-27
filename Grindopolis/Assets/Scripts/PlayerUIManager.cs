@@ -6,7 +6,7 @@ using UnityEngine.UI;
 public class PlayerUIManager : MonoBehaviour
 {
     public bool menuOpen;
-
+    public bool talkingToNPC;
     public string playerName;
 
     public int playerColor;
@@ -22,6 +22,8 @@ public class PlayerUIManager : MonoBehaviour
     public GameObject player;
     public Renderer playerBodyRenderer;
 
+    public bool dialogBoxOpen;
+
     InteractableNPC storedNpc;
     AudioSource audio;
     PlayerController pc;
@@ -29,11 +31,13 @@ public class PlayerUIManager : MonoBehaviour
     RectTransform dialogBg;
     Image dialogNameBg;
     Image crosshair;
+    Image pressEIndicator;
     Text line1;
     Text line2;
     Text line3;
     Text lineName;
     Text hintText;
+    
 
     // Start is called before the first frame update
     void Start()
@@ -48,6 +52,8 @@ public class PlayerUIManager : MonoBehaviour
         dialogBg = GameObject.Find("DialogBG").GetComponent<RectTransform>();
         dialogNameBg = GameObject.Find("DialogNameBG").GetComponent<Image>();
         crosshair = GameObject.Find("CrosshairImage").GetComponent<Image>();
+        pressEIndicator = GameObject.Find("PressEIndicator").GetComponent<Image>();
+        pressEIndicator.color = Color.clear;
 
         audio = GetComponent<AudioSource>();
         inputf = GetComponentInChildren<InputField>();
@@ -105,6 +111,7 @@ public class PlayerUIManager : MonoBehaviour
     public void ResetDialogWindow()
     {
         dialogBg.anchoredPosition = new Vector2(267.8f, -192.1f);
+        dialogBoxOpen = false;
     }
     public void UpdateColor()
     {
@@ -140,17 +147,18 @@ public class PlayerUIManager : MonoBehaviour
 
     public void DisplayDialog(InteractableNPC npc)
     {
-        StartCoroutine(DisplayDialogEnum(npc));
+        StartCoroutine(DisplayDialogLine(npc, 0));
     }
-    IEnumerator DisplayDialogEnum(InteractableNPC npc)
+    IEnumerator DisplayDialogLine(InteractableNPC npc, int lineIndex)
     {
+        dialogBoxOpen = true;
         storedNpc = npc;
 
         line1.text = "";
         line2.text = "";
         line3.text = "";
 
-        if(npc.name == "")
+        if(npc.npcName == "")
         {
             dialogNameBg.color = Color.clear;
             lineName.text = "";
@@ -158,10 +166,12 @@ public class PlayerUIManager : MonoBehaviour
         else
         {
             dialogNameBg.color = Color.white;
-            lineName.text = npc.name;
+            lineName.text = npc.npcName;
         }
 
-        dialogBg.anchoredPosition = new Vector2(267.8f, -192.1f);
+        // Don't hide the dialog box it's already showing - used for when we have multiple lines in our line array
+        if(dialogBg.anchoredPosition.x <= -265)
+            dialogBg.anchoredPosition = new Vector2(267.8f, -192.1f);
 
         while (dialogBg.anchoredPosition.x >= -265f)
         {
@@ -171,23 +181,55 @@ public class PlayerUIManager : MonoBehaviour
 
         dialogBg.anchoredPosition = new Vector2(-267.8f, -192.1f);
 
-        line1.text = npc.line1;
+        // Display the first line of the current NPCLines
+        line1.text = npc.lines[lineIndex].line1;
         audio.PlayOneShot(typeSound);
-        yield return new WaitForSeconds(0.35f);
+        yield return new WaitForSeconds(0.25f);
 
-        if (npc.line2 != "")
+        if (npc.lines[lineIndex].line2 != "")
         {
-            line2.text = npc.line2;
+            line2.text = npc.lines[lineIndex].line2;
             audio.PlayOneShot(typeSound);
-            yield return new WaitForSeconds(0.35f);
+            yield return new WaitForSeconds(0.25f);
         }
 
-        if (npc.line3 != "")
+        if (npc.lines[lineIndex].line3 != "")
         {
-            line3.text = npc.line3;
+            line3.text = npc.lines[lineIndex].line3;
             audio.PlayOneShot(typeSound);
-            yield return new WaitForSeconds(0.35f);
+            yield return new WaitForSeconds(0.25f);
         }
 
+        // Wait for the player to press the E key
+        pressEIndicator.color = Color.white;
+        yield return WaitForKeyPress();
+        pressEIndicator.color = Color.clear;
+
+        // If there are additional NPCLines in our array, call DisplayDialogLine again
+        if (lineIndex < npc.lines.Length - 1)
+        {
+            StartCoroutine(DisplayDialogLine(npc, lineIndex + 1));
+        }
+
+        // Otherwise, just hide the dialog from the screen
+        else
+        {
+            while (dialogBg.anchoredPosition.x <= 265f)
+            {
+                dialogBg.anchoredPosition = Vector2.Lerp(dialogBg.anchoredPosition, new Vector2(267.8f, -192.1f), 0.5f);
+                yield return null;
+            }
+
+            dialogBg.anchoredPosition = new Vector2(267.8f, -192.1f);
+            dialogBoxOpen = false;
+        }
+    }
+
+    IEnumerator WaitForKeyPress()
+    {
+        while(!Input.GetKeyDown(KeyCode.E))
+        {
+            yield return null;
+        }
     }
 }

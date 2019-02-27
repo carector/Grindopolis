@@ -13,6 +13,7 @@ public class PlayerController : NetworkBehaviour
     public class PlayerMovementSettings
     {
         public bool isGrounded;
+        public bool isCrouching = false;
         public bool canMove = true;
         public bool canDoubleJump;
         public bool isOnLadder;
@@ -26,7 +27,18 @@ public class PlayerController : NetworkBehaviour
         public float fallingSpeed;
     }
 
+    [System.Serializable]
+    public class PlayerCombatSettings
+    {
+        public bool canAttack = true;
+        public GameObject spellObject1;
+        public GameObject spellObject2;
+
+    }
+
+    public bool canPickupObjects;
     public PlayerMovementSettings movementSettings;
+    public PlayerCombatSettings combatSettings;
     public GameObject HUDPrefab;
     public GameObject nameDisplayerPrefab;
     public GameObject heldObject;
@@ -36,12 +48,16 @@ public class PlayerController : NetworkBehaviour
     public PlayerNetworkScript pns; // lmao penis
     public Transform heldObjectFocus;
     public GameObject leftMouseProjectile;
+    public Transform projectilePosition;
 
     // Private vars
     private GameObject storedPlatform;
 
 
     // Vars
+    bool canStandUp;
+    bool leftAttackCharged;
+    bool rightAttackCharged;
     bool finishedSetup;
     bool isHoldingObject;
     bool jumping; // Used for the first frame of when the player jumps - prevents charControl.isGrounded from overwriting value before charControl.Move() is called
@@ -67,7 +83,7 @@ public class PlayerController : NetworkBehaviour
     Vector3 storedVelocity;
 
     Vector3 footstepPos;
-
+    
     PickupScript pickup;
 
     // Use this for initialization
@@ -132,15 +148,33 @@ public class PlayerController : NetworkBehaviour
             }
         }
 
-        /*if(Input.GetButtonDown("Fire1") && heldObject == null)
-        {
-            GameObject proj = Instantiate(leftMouseProjectile, heldObjectFocus);
-            proj.transform.parent = null;
-            proj.GetComponent<Rigidbody>().AddRelativeForce(-cam.transform.right * 1000);
-            NetworkServer.Spawn(proj);
+        canStandUp = CeilingRaycastCheck();
 
+        // If we're crouching, set that to be true and play our sound effect
+        if (Input.GetKeyDown(KeyCode.LeftControl) && !movementSettings.isCrouching)
+        {
+            CmdPlaySFX(3);
+            CmdSetCrouchStatus(true);
         }
-        */
+        else if (canStandUp && Input.GetKeyUp(KeyCode.LeftControl))
+        {
+            CmdPlaySFX(4);
+            CmdSetCrouchStatus(false);
+        }
+        else if(!Input.GetKey(KeyCode.LeftControl) && movementSettings.isCrouching)
+        {
+            if (canStandUp)
+            {
+                CmdPlaySFX(4);
+                CmdSetCrouchStatus(false);
+            }
+        }
+
+        if (Input.GetButtonDown("Fire1") && heldObject == null && movementSettings.canMove && leftAttackCharged)
+        {
+            CmdLaunchProjectile(0);
+        }
+        
 
         // Also check to see if we should receive falling damage
         // Increase falling speed if our current velocity is greater than what we have stored
@@ -163,7 +197,7 @@ public class PlayerController : NetworkBehaviour
                 heldObject.GetComponent<Rigidbody>().velocity = storedVelocity;
                 heldObject = null;
 
-                CmdDropObject(pickup);
+                DropObject();
                 isHoldingObject = false;
             }
             else if(Input.GetKeyDown(KeyCode.F))
@@ -173,7 +207,7 @@ public class PlayerController : NetworkBehaviour
                 heldObject.GetComponent<Rigidbody>().AddForce(cam.transform.TransformDirection(Vector3.forward * 500));
                 heldObject = null;
 
-                CmdDropObject(pickup);
+                DropObject();
                 isHoldingObject = false;
             }
         }
@@ -186,6 +220,28 @@ public class PlayerController : NetworkBehaviour
     // Movement calculation and physics are controlled with FixedUpdate
     private void FixedUpdate()
     {
+        // If we're crouching, adjust our player's height and camera position to give the illusion of crouching
+        if (movementSettings.isCrouching)
+        {
+            charControl.center = new Vector3(0, -0.5f, 0);
+            charControl.height = 1;
+            bodyRenderer.transform.localPosition = Vector3.Lerp(bodyRenderer.transform.localPosition, new Vector3(0, -0.5307f, 0), 0.25f);
+            bodyRenderer.transform.localScale = Vector3.Lerp(bodyRenderer.transform.localScale, new Vector3(0.34343f, 0.7482614f, 0.34343f), 0.25f);
+
+            cam.transform.localPosition = Vector3.Lerp(cam.transform.localPosition, Vector3.zero, 0.25f);
+        }
+        else
+        {
+            charControl.center = Vector3.zero;
+            charControl.height = 2;
+
+            bodyRenderer.transform.localPosition = Vector3.Lerp(bodyRenderer.transform.localPosition, new Vector3(0, -0.0936f, 0), 0.25f);
+            bodyRenderer.transform.localScale = Vector3.Lerp(bodyRenderer.transform.localScale, new Vector3(0.34343f, 1.18542f, 0.34343f), 0.25f);
+
+            cam.transform.localPosition = Vector3.Lerp(cam.transform.localPosition, new Vector3(0, 1, 0), 0.25f);
+        }
+
+        // All future code is only run clientside
         // Make sure this is our client's player
         if (!hasAuthority || !finishedSetup)
             return;
@@ -194,12 +250,15 @@ public class PlayerController : NetworkBehaviour
         if (movementSettings.canMove)
         {
             // If we're sprinting, move the player with our sprint speed.
-            if (Input.GetButton("Sprint"))
+            // Make sure we aren't crouching too.
+            if (Input.GetButton("Sprint") && !movementSettings.isCrouching)
                 MovePlayer(movementSettings.runSpeed);
             // Otherwise, move with the walk speed.
             else
                 MovePlayer(movementSettings.walkSpeed);
         }
+
+        
     }
     void Jump(bool isDoubleJump)
     {
@@ -333,7 +392,7 @@ public class PlayerController : NetworkBehaviour
         Vector3 rayStart = new Vector3(transform.position.x, transform.position.y - 1.01f, transform.position.z);
 
         // Raycast should extend to the maximum angle the player can walk up (45 degrees)
-        if (Physics.Raycast(rayStart, -transform.up, out hit, 0.1f)) // 0.2f is a rough estimate
+        if (Physics.Raycast(rayStart, -transform.up, out hit, 0.2f)) // 0.2f is a rough estimate
         {
             // First, check to see if we're on a moving platform
             if (hit.collider.tag == "Platform")
@@ -364,6 +423,18 @@ public class PlayerController : NetworkBehaviour
 
     }
 
+    bool CeilingRaycastCheck()
+    {
+        RaycastHit hit;
+        Debug.DrawRay(cam.transform.position, cam.transform.TransformDirection(Vector3.forward * 2.5f), Color.red);
+
+        if (Physics.Raycast(cam.transform.position, cam.transform.TransformDirection(Vector3.up), out hit, 2.5f))
+        {
+            return false;
+        }
+        return true;
+    }
+
     void RaycastCheck()
     {
         RaycastHit hit;
@@ -382,7 +453,7 @@ public class PlayerController : NetworkBehaviour
                 uiMan.EnableCrosshair();
                 pickup = hit.collider.GetComponent<PickupScript>();
 
-                if (pickup.holder == null)
+                if (!pickup.isHeld && canPickupObjects)
                 {
                     uiMan.EnableCrosshair();
                     uiMan.DisplayHintText("Press E to pick up " + pickup.pickupName);
@@ -392,33 +463,46 @@ public class PlayerController : NetworkBehaviour
                         uiMan.DisplayHintText("Press R to drop Press F to throw");
                         heldObject = pickup.gameObject;
 
-                        CmdPickupObject(pickup);
+                        PickupObject();
 
                         isHoldingObject = true;
                     }
                 }
             }
 
-            else if(hit.collider.tag == "NPC")
+            else if(hit.collider.tag == "NPC" && !uiMan.dialogBoxOpen)
             {
                 uiMan.EnableCrosshair();
                 InteractableNPC npc = hit.collider.GetComponent<InteractableNPC>();
 
-                uiMan.DisplayHintText("Press E to talk to " + npc.name);
+                uiMan.DisplayHintText("Press E to talk to " + npc.npcName);
 
                 if (Input.GetKeyDown(KeyCode.E))
                 {
                     uiMan.DisplayDialog(npc);
                 }
-            }
+            }/*
             else
             {
                 uiMan.ResetDialogWindow();
                 uiMan.StopAllCoroutines();
-            }
+            }*/
         }
     }
 
+    void PickupObject()
+    {
+        Debug.Log("Picked up object");
+        pickup.isHeld = true;
+        pickup.holder = this.gameObject;
+        pickup.transform.parent = this.transform;
+    }
+    void DropObject()
+    {
+        pickup.isHeld = false;
+        pickup.holder = null;
+        pickup.transform.parent = null;
+    }
 
     [Command]
     void CmdPlaySFX(int a)
@@ -427,20 +511,21 @@ public class PlayerController : NetworkBehaviour
     }
 
     [Command]
+    public void CmdLaunchProjectile(int proj)
+    {
+        RpcLaunchProjectile(proj);
+    }
+
+    [Command]
     public void CmdUpdatePlayerInfo(int materialIndex, string name)
     {
         RpcUpdatePlayerInfo(materialIndex, name);
     }
-
+    
     [Command]
-    void CmdPickupObject(PickupScript pickup)
+    public void CmdSetCrouchStatus(bool s)
     {
-        RpcPickupObject(pickup);
-    }
-    [Command]
-    void CmdDropObject(PickupScript pickup)
-    {
-        RpcDropObject(pickup);
+        RpcSetCrouchStatus(s);
     }
 
     [ClientRpc]
@@ -450,6 +535,9 @@ public class PlayerController : NetworkBehaviour
         // 0 = Footsteps
         // 1 = Jump
         // 2 = Pickup Jump (To show you ain't fuckin around)
+        // 3 = Crouch
+        // 4 = Uncrouch
+
         if (a == 0)
         {
             pSounds.PlayFootstepSound();
@@ -462,7 +550,24 @@ public class PlayerController : NetworkBehaviour
         {
             pSounds.PlayDoubleJumpSound();
         }
+        else if(a == 3)
+        {
+            pSounds.PlayCrouchSound();
+        }
+        else if(a == 4)
+        {
+            pSounds.PlayUncrouchSound();
+        }
 
+    }
+
+    [ClientRpc]
+    public void RpcLaunchProjectile(int projNum)
+    {
+        GameObject proj = Instantiate(leftMouseProjectile, projectilePosition.position, projectilePosition.localRotation);
+        proj.transform.parent = null;
+        proj.GetComponent<Rigidbody>().AddRelativeForce(-cam.transform.right * 1000);
+        NetworkServer.Spawn(proj);
     }
 
     [ClientRpc]
@@ -475,20 +580,13 @@ public class PlayerController : NetworkBehaviour
     }
 
     [ClientRpc]
-    void RpcPickupObject(PickupScript pickup)
+    public void RpcSetCrouchStatus(bool s)
     {
-        Debug.Log("Picked up object");
-        pickup.isHeld = true;
-        pickup.holder = this.gameObject;
-        pickup.transform.parent = this.transform;
+        movementSettings.isCrouching = s;
+        canStandUp = true;
     }
-    [ClientRpc]
-    void RpcDropObject(PickupScript pickup)
-    {
-        pickup.isHeld = false;
-        pickup.holder = null;
-        pickup.transform.parent = null;
-    }
+
+    
     IEnumerator OnStartCoroutine()
     {
         yield return new WaitForSeconds(0.05f);

@@ -12,9 +12,13 @@ public class PlayerSounds : MonoBehaviour
     public AudioClip boostJumpSound;
     public AudioClip hitGroundSound;
     public AudioClip fallDamageSound;
+    public AudioClip crouchSound;
+    public AudioClip uncrouchSound;
 
     // Private vars
     private AudioSource audio;
+
+    bool isCrouched;
 
 
     // Use this for initialization
@@ -46,5 +50,20 @@ public class PlayerSounds : MonoBehaviour
 
         else
             audio.PlayOneShot(fallDamageSound, 1);
+    }
+
+    public void PlayCrouchSound()
+    {
+        // To prevent multiple clips from playing, isCrouched must be checked (resets each time this is called)
+        if(!isCrouched)
+            audio.PlayOneShot(crouchSound);
+            isCrouched = true;
+    }
+    public void PlayUncrouchSound()
+    {
+        // To prevent multiple clips from playing, isCrouched must be unchecked checked (resets each time this is called)
+        if (isCrouched)  
+            audio.PlayOneShot(uncrouchSound);
+            isCrouched = false;
     }
 }
