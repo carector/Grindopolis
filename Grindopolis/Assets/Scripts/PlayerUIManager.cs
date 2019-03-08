@@ -37,6 +37,7 @@ public class PlayerUIManager : MonoBehaviour
     Text line3;
     Text lineName;
     Text hintText;
+    Text speedText;
     
 
     // Start is called before the first frame update
@@ -44,6 +45,7 @@ public class PlayerUIManager : MonoBehaviour
     {
         Cursor.visible = false;
 
+        speedText = GameObject.Find("SpeedText").GetComponent<Text>();
         line1 = GameObject.Find("DialogLine1").GetComponent<Text>();
         line2 = GameObject.Find("DialogLine2").GetComponent<Text>();
         line3 = GameObject.Find("DialogLine3").GetComponent<Text>();
@@ -102,7 +104,7 @@ public class PlayerUIManager : MonoBehaviour
         }
 
         // Check to see if the player has moved far enough away from the NPC it has just interacted with - this is in order to reset the dialog box
-        if (storedNpc != null && Vector3.Distance(pc.transform.position, storedNpc.transform.position) >= 10)
+        if (storedNpc != null && Vector3.Distance(pc.transform.position, storedNpc.transform.position) >= storedNpc.GetComponent<NPCAnimations>().minRotateDistance)
         {
             ResetDialogWindow();
         }
@@ -110,8 +112,10 @@ public class PlayerUIManager : MonoBehaviour
     }
     public void ResetDialogWindow()
     {
+        StopAllCoroutines();
         dialogBg.anchoredPosition = new Vector2(267.8f, -192.1f);
         dialogBoxOpen = false;
+        
     }
     public void UpdateColor()
     {
@@ -145,12 +149,18 @@ public class PlayerUIManager : MonoBehaviour
         crosshair.enabled = false;
     }
 
+    public void DisplaySpeed(float x, float z)
+    {
+        speedText.text = x + ", " + z;
+    }
+
     public void DisplayDialog(InteractableNPC npc)
     {
         StartCoroutine(DisplayDialogLine(npc, 0));
     }
     IEnumerator DisplayDialogLine(InteractableNPC npc, int lineIndex)
     {
+        pressEIndicator.color = Color.clear;
         dialogBoxOpen = true;
         storedNpc = npc;
 
@@ -170,7 +180,7 @@ public class PlayerUIManager : MonoBehaviour
         }
 
         // Don't hide the dialog box it's already showing - used for when we have multiple lines in our line array
-        if(dialogBg.anchoredPosition.x <= -265)
+        if(lineIndex == 0)
             dialogBg.anchoredPosition = new Vector2(267.8f, -192.1f);
 
         while (dialogBg.anchoredPosition.x >= -265f)

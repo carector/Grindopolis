@@ -8,6 +8,8 @@ TagManager:
   - Pickup
   - NPC
   - Ceiling
+  - Water
+  - WallCollider
   layers:
   - Default
   - TransparentFX

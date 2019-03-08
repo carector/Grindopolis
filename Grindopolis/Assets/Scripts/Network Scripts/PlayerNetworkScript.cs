@@ -58,7 +58,9 @@ public class PlayerNetworkScript : NetworkBehaviour { // Not MonoBehavior holy s
     [Command] 
     void CmdSpawnPlayerController()
     {
-        pObject = Instantiate(PlayerControllerPrefab, new Vector3(Random.Range(-10, 10), 1, Random.Range(-5, -15)), Quaternion.identity);
+        //pObject = Instantiate(PlayerControllerPrefab, new Vector3(Random.Range(-10, 10), 1, Random.Range(-5, -15)), Quaternion.identity);
+        pObject = Instantiate(PlayerControllerPrefab, new Vector3(6.51f, 10.41f, 323.7f), Quaternion.identity);
+
         pObject.GetComponent<PlayerController>().pns = this;
 
         // Tell the server to spawn the playercontroller for the player who just joined

@@ -67,6 +67,8 @@
     <Compile Include="Assets\DisplayNewLines.cs" />
     <Compile Include="Assets\NPCAnimations.cs" />
     <Compile Include="Assets\PickupScript.cs" />
+    <Compile Include="Assets\Scripts\Buoyancy.cs" />
+    <Compile Include="Assets\Scripts\HealthBubbleSpell.cs" />
     <Compile Include="Assets\Scripts\InteractableNPC.cs" />
     <Compile Include="Assets\Scripts\MusicTransitionTrigger.cs" />
     <Compile Include="Assets\Scripts\Network Scripts\BouncyBallScript.cs" />
@@ -80,9 +82,11 @@
     <Compile Include="Assets\Scripts\Spell.cs" />
     <Compile Include="Assets\Scripts\TextOutline.cs" />
     <Compile Include="Assets\TitleUIManager.cs" />
+    <Compile Include="Assets\WaterFloatScript.cs" />
     <None Include="Assets\NetworkLobby_Third-PartyNotice.txt" />
     <None Include="Assets\Textures\Skies\hw_blue\hw_blue.shader" />
     <None Include="Assets\3D Pixel Tiles\2D Pixel Tileset\!Read Me! - On Layers and Tags.txt" />
+    <None Include="Assets\SeansWater\ReadMe.txt" />
     <None Include="Assets\Textures\Skies\dragonvale\dragonvale.shader" />
     <None Include="Assets\Textures\Skies\ame_siege\ame_siege.shader" />
     <None Include="Assets\Textures\Skies\hw_blue\license.txt" />
@@ -93,8 +97,10 @@
     <None Include="Assets\Fonts\OpenSans\FontLicense.txt" />
     <None Include="Assets\Textures\Skies\mp_gatekeeper\license.txt" />
     <None Include="Assets\Textures\Skies\hw_crater\license.txt" />
+    <None Include="Assets\SeansWater\Shaders\SeansWater_Deferred.shader" />
     <None Include="Assets\3D Pixel Tiles\2D Pixel Tileset\Extras\!Read Me! - Notes on Scripts.txt" />
     <None Include="Assets\Textures\Skies\hw_canyon\hw_canyon.shader" />
+    <None Include="Assets\SeansWater\Shaders\SeansWater.shader" />
     <None Include="Assets\Textures\Skies\hw_crater\hw_crater.shader" />
     <Reference Include="Unity.TextMeshPro.Editor">
       <HintPath>C:/Users/Basel/Documents/Grindopolis/Grindopolis/Library/ScriptAssemblies/Unity.TextMeshPro.Editor.dll</HintPath>

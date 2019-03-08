@@ -2,22 +2,22 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class UpdateNPCLines : MonoBehaviour
+public class DisplayNewLines : MonoBehaviour
 {
     public InteractableNPC npc;
-    public string line1;
-    public string line2;
-    public string line3;
+    public InteractableNPC.NPCLines[] newLines;
 
     private void OnTriggerEnter(Collider other)
     {
         if(other.gameObject.name == "ClientPlayer")
         {
-            /*
-            npc.line1 = line1;
-            npc.line2 = line2;
-            npc.line3 = line3;
-            */
+            UpdateLines();
         }
+    }
+
+    public void UpdateLines()
+    {
+        // Replace our current NPCLines with our updated ones (newLines)
+        npc.lines = newLines;
     }
 }

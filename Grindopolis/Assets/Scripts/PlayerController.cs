@@ -23,6 +23,7 @@ public class PlayerController : NetworkBehaviour
         public float runSpeed;
         public float walkSpeed;
         public float slopeMax;
+        public float maxSpeed;
         public GameObject onPlatform;
         public float fallingSpeed;
     }
@@ -62,6 +63,7 @@ public class PlayerController : NetworkBehaviour
     bool isHoldingObject;
     bool jumping; // Used for the first frame of when the player jumps - prevents charControl.isGrounded from overwriting value before charControl.Move() is called
     bool hasDoubleJumped;
+    bool adjustedMidairMovement;
     float remainingJump;
 
     Rigidbody pickupToJumpOn;
@@ -69,7 +71,7 @@ public class PlayerController : NetworkBehaviour
     Camera cam;
     CharacterController charControl;
 
-    
+
     NetworkManagerScript nms;
     PlayerSounds pSounds;
     PlayerUIManager uiMan;
@@ -78,12 +80,15 @@ public class PlayerController : NetworkBehaviour
     Vector3 moveDirVert;
     Vector3 moveDirUp;
 
+    Vector3 storedMoveDirHoriz;
+    Vector3 storedMoveDirVert;
+
     Vector3 currentPos;
     Vector3 previousPos;
     Vector3 storedVelocity;
 
     Vector3 footstepPos;
-    
+
     PickupScript pickup;
 
     // Use this for initialization
@@ -91,7 +96,7 @@ public class PlayerController : NetworkBehaviour
     {
         cam = GetComponentInChildren<Camera>();
         nms = GameObject.Find("NetworkManager").GetComponent<NetworkManagerScript>();
-        pns = GameObject.Find("PlayerConnection(Clone)").GetComponent<PlayerNetworkScript>() ;
+        pns = GameObject.Find("PlayerConnection(Clone)").GetComponent<PlayerNetworkScript>();
         pns.name = "PlayerConnection" + nms.numConnectedPlayers;
 
         // Initialize positions
@@ -111,7 +116,7 @@ public class PlayerController : NetworkBehaviour
     {
         // Make sure this is our client's player
         if (!hasAuthority || !finishedSetup)
-        {       
+        {
             return;
         }
 
@@ -129,7 +134,7 @@ public class PlayerController : NetworkBehaviour
             movementSettings.fallingSpeed = 0;
 
             if ((Vector3.Distance(footstepPos, transform.position) >= 3.5f))
-            {    
+            {
                 footstepPos = transform.position;
                 CmdPlaySFX(0);
             }
@@ -161,7 +166,7 @@ public class PlayerController : NetworkBehaviour
             CmdPlaySFX(4);
             CmdSetCrouchStatus(false);
         }
-        else if(!Input.GetKey(KeyCode.LeftControl) && movementSettings.isCrouching)
+        else if (!Input.GetKey(KeyCode.LeftControl) && movementSettings.isCrouching)
         {
             if (canStandUp)
             {
@@ -174,7 +179,7 @@ public class PlayerController : NetworkBehaviour
         {
             CmdLaunchProjectile(0);
         }
-        
+
 
         // Also check to see if we should receive falling damage
         // Increase falling speed if our current velocity is greater than what we have stored
@@ -187,9 +192,9 @@ public class PlayerController : NetworkBehaviour
         RaycastCheck();
 
         // If we're holding an object, we can either drop it or throw it
-        if(isHoldingObject)
+        if (isHoldingObject)
         {
-            if(Input.GetKeyDown(KeyCode.R))
+            if (Input.GetKeyDown(KeyCode.R))
             {
                 Debug.Log(storedVelocity);
 
@@ -200,7 +205,7 @@ public class PlayerController : NetworkBehaviour
                 DropObject();
                 isHoldingObject = false;
             }
-            else if(Input.GetKeyDown(KeyCode.F))
+            else if (Input.GetKeyDown(KeyCode.F))
             {
                 heldObject.transform.parent = null;
                 heldObject.GetComponent<Rigidbody>().velocity = storedVelocity;
@@ -258,7 +263,7 @@ public class PlayerController : NetworkBehaviour
                 MovePlayer(movementSettings.walkSpeed);
         }
 
-        
+
     }
     void Jump(bool isDoubleJump)
     {
@@ -298,8 +303,65 @@ public class PlayerController : NetworkBehaviour
 
 
         // horizontal movement and vertical movement are set up like this because PlayerLook modifies player rotation
-        moveDirHoriz = transform.right * horizontal * speed;
-        moveDirVert = transform.forward * vertical * speed;
+        // check first to see if we're in midair - if we are, don't take in any input and maintain what our velocity was before we jumped
+        if (charControl.isGrounded)
+        {
+            moveDirHoriz = transform.right * horizontal * speed;
+            moveDirVert = transform.forward * vertical * speed;
+
+            // Store our current speeds in case jump at some point
+            storedMoveDirHoriz = moveDirHoriz;
+            storedMoveDirVert = moveDirVert;
+        }
+        else
+        {
+            // Start by checking to see if we've double jumped - this will allow us to change our position in mid-air
+            if (hasDoubleJumped && !adjustedMidairMovement)
+            {
+                storedMoveDirHoriz = transform.right * horizontal * speed;
+                storedMoveDirVert = transform.forward * vertical * speed;
+                adjustedMidairMovement = true;
+            }
+
+            // Set our moveDir vectors to whatever we were just at when we were on the ground
+            // Add input slightly so we have a tiny bit of control
+            moveDirHoriz = storedMoveDirHoriz + (transform.right * horizontal * speed * 0.8f);
+            moveDirVert = storedMoveDirVert + (transform.forward * vertical * speed * 0.8f);
+
+            // If we aren't providing any input, we can slow our movement in that axis (useful when landing so you don't overshoot into the giant shit puddle)
+            if(horizontal == 0 || Mathf.Sign(horizontal) != Mathf.Sign(transform.InverseTransformDirection(moveDirHoriz).x))
+            {
+                storedMoveDirHoriz = Vector3.Lerp(storedMoveDirHoriz, Vector3.zero, 0.1f);
+            }
+            if(vertical == 0 || Mathf.Sign(horizontal) != Mathf.Sign(transform.InverseTransformDirection(moveDirVert).z))
+            {
+                storedMoveDirVert = Vector3.Lerp(storedMoveDirVert, Vector3.zero, 0.1f);
+            }
+
+
+        }
+        // Limit our speed in case we're over our max
+        Vector3 relativeMoveDirHoriz = transform.InverseTransformDirection(moveDirHoriz);
+        Vector3 relativeMoveDirVert = transform.InverseTransformDirection(moveDirVert);
+        
+        if (Mathf.Abs(relativeMoveDirHoriz.x) >= movementSettings.maxSpeed)
+        {
+            relativeMoveDirHoriz.x = movementSettings.maxSpeed * Mathf.Sign(relativeMoveDirHoriz.x);
+        }
+        if (Mathf.Abs(relativeMoveDirVert.z) >= movementSettings.maxSpeed)
+        {
+            relativeMoveDirVert.z = movementSettings.maxSpeed * Mathf.Sign(relativeMoveDirVert.z);
+        }
+
+        // Convert our relative speed back into our normal speed
+        moveDirHoriz = transform.TransformDirection(relativeMoveDirHoriz);
+        moveDirVert = transform.TransformDirection(relativeMoveDirVert);
+
+        // Print our speed
+        uiMan.DisplaySpeed(Mathf.Round(relativeMoveDirHoriz.x * 100) / 100, Mathf.Round(relativeMoveDirVert.z * 100) / 100);
+
+
+
 
         // Different if we're standing on a ladder
         if (movementSettings.isOnLadder)
@@ -329,8 +391,17 @@ public class PlayerController : NetworkBehaviour
                 moveDirUp.y = -0.01f;
             }
 
-            // Reset hasDoubleJumped once we're grounded
+            // Reset some vars once we're grounded
             hasDoubleJumped = false;
+
+            if(adjustedMidairMovement)
+            {
+                // Briefly set our speed to zero so we can land more easily
+                moveDirHoriz = Vector3.zero;
+                moveDirVert = Vector3.zero;
+                adjustedMidairMovement = false;
+            }
+            
 
         }
         // Otherwise, subtract gravity from our downward speed
@@ -443,10 +514,10 @@ public class PlayerController : NetworkBehaviour
         // Automatically disable crosshair - if something is hit, it will override this
         uiMan.DisableCrosshair();
 
-        if(!isHoldingObject)
+        if (!isHoldingObject)
             uiMan.DisplayHintText("");
 
-        if (Physics.Raycast(cam.transform.position, cam.transform.TransformDirection(Vector3.forward), out hit, 8))
+        if (Physics.Raycast(cam.transform.position, cam.transform.TransformDirection(Vector3.forward), out hit, 10))
         {
             if (hit.collider.tag == "Pickup" && !isHoldingObject)
             {
@@ -470,7 +541,7 @@ public class PlayerController : NetworkBehaviour
                 }
             }
 
-            else if(hit.collider.tag == "NPC" && !uiMan.dialogBoxOpen)
+            else if (hit.collider.tag == "NPC" && !uiMan.dialogBoxOpen)
             {
                 uiMan.EnableCrosshair();
                 InteractableNPC npc = hit.collider.GetComponent<InteractableNPC>();
@@ -521,7 +592,7 @@ public class PlayerController : NetworkBehaviour
     {
         RpcUpdatePlayerInfo(materialIndex, name);
     }
-    
+
     [Command]
     public void CmdSetCrouchStatus(bool s)
     {
@@ -546,15 +617,15 @@ public class PlayerController : NetworkBehaviour
         {
             pSounds.PlayJumpSound();
         }
-        else if(a == 2)
+        else if (a == 2)
         {
             pSounds.PlayDoubleJumpSound();
         }
-        else if(a == 3)
+        else if (a == 3)
         {
             pSounds.PlayCrouchSound();
         }
-        else if(a == 4)
+        else if (a == 4)
         {
             pSounds.PlayUncrouchSound();
         }
@@ -586,7 +657,7 @@ public class PlayerController : NetworkBehaviour
         canStandUp = true;
     }
 
-    
+
     IEnumerator OnStartCoroutine()
     {
         yield return new WaitForSeconds(0.05f);
@@ -637,13 +708,13 @@ public class PlayerController : NetworkBehaviour
             uiMan.menuCanvas.worldCamera = cam;
             uiMan.menuCanvas.planeDistance = 0.15f;
             */
-            
+
         }
 
         nms.numConnectedPlayers++;
         print("Player " + nms.numConnectedPlayers + " setup complete.");
 
-        if(pns.playerName == "")
+        if (pns.playerName == "")
             pns.playerName = "Grinder " + nms.numConnectedPlayers;
 
         finishedSetup = true;
