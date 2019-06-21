@@ -37,7 +37,7 @@ public class PlayerUIManager : MonoBehaviour
     Text line3;
     Text lineName;
     Text hintText;
-    Text speedText;
+    //Text speedText;
     
 
     // Start is called before the first frame update
@@ -45,7 +45,7 @@ public class PlayerUIManager : MonoBehaviour
     {
         Cursor.visible = false;
 
-        speedText = GameObject.Find("SpeedText").GetComponent<Text>();
+        //speedText = GameObject.Find("SpeedText").GetComponent<Text>();
         line1 = GameObject.Find("DialogLine1").GetComponent<Text>();
         line2 = GameObject.Find("DialogLine2").GetComponent<Text>();
         line3 = GameObject.Find("DialogLine3").GetComponent<Text>();
@@ -149,10 +149,12 @@ public class PlayerUIManager : MonoBehaviour
         crosshair.enabled = false;
     }
 
+    /*
     public void DisplaySpeed(float x, float z)
     {
         speedText.text = x + ", " + z;
     }
+    */
 
     public void DisplayDialog(InteractableNPC npc)
     {

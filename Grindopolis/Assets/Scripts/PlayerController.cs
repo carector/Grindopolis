@@ -160,11 +160,13 @@ public class PlayerController : NetworkBehaviour
         {
             CmdPlaySFX(3);
             CmdSetCrouchStatus(true);
+            movementSettings.isCrouching = true;
         }
         else if (canStandUp && Input.GetKeyUp(KeyCode.LeftControl))
         {
             CmdPlaySFX(4);
             CmdSetCrouchStatus(false);
+            movementSettings.isCrouching = false;
         }
         else if (!Input.GetKey(KeyCode.LeftControl) && movementSettings.isCrouching)
         {
@@ -172,6 +174,7 @@ public class PlayerController : NetworkBehaviour
             {
                 CmdPlaySFX(4);
                 CmdSetCrouchStatus(false);
+                movementSettings.isCrouching = false;
             }
         }
 
@@ -318,18 +321,21 @@ public class PlayerController : NetworkBehaviour
             // Start by checking to see if we've double jumped - this will allow us to change our position in mid-air
             if (hasDoubleJumped && !adjustedMidairMovement)
             {
-                storedMoveDirHoriz = transform.right * horizontal * speed;
-                storedMoveDirVert = transform.forward * vertical * speed;
+                storedMoveDirHoriz = transform.right * horizontal * speed / 5;
+                storedMoveDirVert = transform.forward * vertical * speed / 5;
                 adjustedMidairMovement = true;
             }
 
             // Set our moveDir vectors to whatever we were just at when we were on the ground
             // Add input slightly so we have a tiny bit of control
-            moveDirHoriz = storedMoveDirHoriz + (transform.right * horizontal * speed * 0.8f);
-            moveDirVert = storedMoveDirVert + (transform.forward * vertical * speed * 0.8f);
+            storedMoveDirHoriz = Vector3.Lerp(storedMoveDirHoriz, transform.right * horizontal * speed * 0.5f, 0.25f);
+            storedMoveDirVert = Vector3.Lerp(storedMoveDirVert, transform.forward * vertical * speed * 0.5f, 0.25f);
+
+            moveDirHoriz = storedMoveDirHoriz;
+            moveDirVert = storedMoveDirVert;
 
             // If we aren't providing any input, we can slow our movement in that axis (useful when landing so you don't overshoot into the giant shit puddle)
-            if(horizontal == 0 || Mathf.Sign(horizontal) != Mathf.Sign(transform.InverseTransformDirection(moveDirHoriz).x))
+            if (horizontal == 0 || Mathf.Sign(horizontal) != Mathf.Sign(transform.InverseTransformDirection(moveDirHoriz).x))
             {
                 storedMoveDirHoriz = Vector3.Lerp(storedMoveDirHoriz, Vector3.zero, 0.1f);
             }
@@ -346,11 +352,11 @@ public class PlayerController : NetworkBehaviour
         
         if (Mathf.Abs(relativeMoveDirHoriz.x) >= movementSettings.maxSpeed)
         {
-            relativeMoveDirHoriz.x = movementSettings.maxSpeed * Mathf.Sign(relativeMoveDirHoriz.x);
+            relativeMoveDirHoriz.x = speed * Mathf.Sign(relativeMoveDirHoriz.x);
         }
         if (Mathf.Abs(relativeMoveDirVert.z) >= movementSettings.maxSpeed)
         {
-            relativeMoveDirVert.z = movementSettings.maxSpeed * Mathf.Sign(relativeMoveDirVert.z);
+            relativeMoveDirVert.z = speed * Mathf.Sign(relativeMoveDirVert.z);
         }
 
         // Convert our relative speed back into our normal speed
@@ -358,7 +364,7 @@ public class PlayerController : NetworkBehaviour
         moveDirVert = transform.TransformDirection(relativeMoveDirVert);
 
         // Print our speed
-        uiMan.DisplaySpeed(Mathf.Round(relativeMoveDirHoriz.x * 100) / 100, Mathf.Round(relativeMoveDirVert.z * 100) / 100);
+        //uiMan.DisplaySpeed(Mathf.Round(relativeMoveDirHoriz.x * 100) / 100, Mathf.Round(relativeMoveDirVert.z * 100) / 100);
 
 
 

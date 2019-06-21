@@ -18,6 +18,7 @@ public class NPCAnimations : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        eyeSize = rightEye.transform.localScale;
     }
 
     // Update is called once per frame
@@ -35,7 +36,6 @@ public class NPCAnimations : MonoBehaviour
 
             if (blink)
             {
-                eyeSize = rightEye.transform.localScale;
                 StartCoroutine(RandomBlinks());
             }
         }

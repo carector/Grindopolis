@@ -25,15 +25,15 @@ public class PlayerLook : MonoBehaviour
 
     void Start()
     {
-        parentMove = GetComponentInParent<PlayerController>();
+        //parentMove = GetComponentInParent<PlayerController>();
     }
 
     // Each frame, update the camera's rotation
     void Update()
     {
         // Make sure this is our client's player
-        if (!parentMove.hasAuthority)
-            return;
+        //if (!parentMove.hasAuthority)
+            //return;
 
         RotateCamera();
     }
