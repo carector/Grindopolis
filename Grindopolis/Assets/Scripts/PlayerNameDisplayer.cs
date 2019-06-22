@@ -8,7 +8,7 @@ public class PlayerNameDisplayer : MonoBehaviour
     Image nameBackground;
     Text nameText;
     GameObject playerTarget;
-    public PlayerController thisPlayer;
+    public PlayerControllerRigidbody thisPlayer;
 
 
     // Start is called before the first frame update

@@ -50,7 +50,16 @@ public class PlayerNetworkScript : NetworkBehaviour { // Not MonoBehavior holy s
             return;
         }
     }
+    public void SpawnProjectile(GameObject o)
+    {
+        CmdSpawnProjectile(o);
+    }
 
+    [Command]
+    public void CmdSpawnProjectile(GameObject o)
+    {
+        NetworkServer.Spawn(o);
+    }
     // COMMANDS //
     //
     // Commands are special functions that ONLY get executed on the server
@@ -61,7 +70,7 @@ public class PlayerNetworkScript : NetworkBehaviour { // Not MonoBehavior holy s
         pObject = Instantiate(PlayerControllerPrefab, new Vector3(Random.Range(-10, 10), 1, Random.Range(-5, -15)), Quaternion.identity);
         //pObject = Instantiate(PlayerControllerPrefab, new Vector3(6.51f, 10.41f, 323.7f), Quaternion.identity);
 
-        pObject.GetComponent<PlayerController>().pns = this;
+        pObject.GetComponent<PlayerControllerRigidbody>().pns = this;
 
         // Tell the server to spawn the playercontroller for the player who just joined
         // "Spawn" instantiates an object for ALL CLIENTS

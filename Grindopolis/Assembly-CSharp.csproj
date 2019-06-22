@@ -65,6 +65,7 @@
     <Compile Include="Assets\3D Pixel Tiles\2D Pixel Tileset\Extras\TopDownCharacter.cs" />
     <Compile Include="Assets\3D Pixel Tiles\Scripts\WaterAnimSpeed.cs" />
     <Compile Include="Assets\DisplayNewLines.cs" />
+    <Compile Include="Assets\FireballScript.cs" />
     <Compile Include="Assets\NPCAnimations.cs" />
     <Compile Include="Assets\PickupScript.cs" />
     <Compile Include="Assets\PlayerControllerRigidbody.cs" />
@@ -82,6 +83,7 @@
     <Compile Include="Assets\Scripts\PlayerUIManager.cs" />
     <Compile Include="Assets\Scripts\Spell.cs" />
     <Compile Include="Assets\Scripts\TextOutline.cs" />
+    <Compile Include="Assets\StaffAnimate.cs" />
     <Compile Include="Assets\TitleUIManager.cs" />
     <Compile Include="Assets\WaterFloatScript.cs" />
     <None Include="Assets\NetworkLobby_Third-PartyNotice.txt" />

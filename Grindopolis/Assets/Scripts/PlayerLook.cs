@@ -10,7 +10,7 @@ public class PlayerLook : MonoBehaviour
     public float mouseSensitivity;
     public bool lockCursor;
 
-    PlayerController parentMove;
+    PlayerControllerRigidbody parentMove;
     float xAxisClamp = 0.0f;
 
     // Awake is called when the gameObject is activated in-game
@@ -25,15 +25,15 @@ public class PlayerLook : MonoBehaviour
 
     void Start()
     {
-        //parentMove = GetComponentInParent<PlayerController>();
+        parentMove = GetComponentInParent<PlayerControllerRigidbody>();
     }
 
     // Each frame, update the camera's rotation
     void Update()
     {
         // Make sure this is our client's player
-        //if (!parentMove.hasAuthority)
-            //return;
+        if (!parentMove.hasAuthority)
+            return;
 
         RotateCamera();
     }

@@ -77,7 +77,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2d937dd254c5bac4498d4032407949a4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  PlayerControllerPrefab: {fileID: 1282224439245552, guid: 7bd9fda0e6c66f1478d638df8af5aa61,
+  PlayerControllerPrefab: {fileID: 6176924387423033312, guid: 8afecb5b35eda46469621e56e658ff46,
     type: 3}
+  pObject: {fileID: 0}
   playerName: Anonymous
-  health: 0
+  playerMatIndex: 0

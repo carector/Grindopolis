@@ -1,10 +1,10 @@
 Win64
 PlayerPath?
-C:/Users/Basel/Documents/Grindopolis Builds/Dev Build 2/Grindopolis.exe
+C:/Users/Basel/Documents/Grindopolis Builds/Dev Build 3/Grindopolis.exe
 SceneListBegin?
 Assets/Scenes/Grindworld.unity
 SceneListEnd?
-11a69e6c568699e789304de11e76145b Assembly-CSharp.dll:.PlayerNameDisplayer
+f48bcbb1093501d1e0224b10ed79d691 Assembly-CSharp.dll:.PlayerNameDisplayer
 984dcc0ba3707b7691fbdca8ff508d28 Unity.TextMeshPro.dll:TMPro.TMP_SelectionCaret
 01aa15e337e3a9c62f15153dfac6d589 Unity.TextMeshPro.dll:TMPro.TMP_Dropdown
 71bb6a6b6c8f052f948db64c7dd3ca4f UnityEngine.Timeline.dll:UnityEngine.Timeline.ActivationPlayableAsset
@@ -90,6 +90,7 @@ abf1930d8126d0b2e00e9449129a0190 UnityEngine.UI.dll:UnityEngine.EventSystems.Tou
 97effb2e6ba12d32ad18a2305e1ca879 Assembly-CSharp.dll:.PlayerNetworkScript
 ee1449e990cc0a62c8f841b6496575ec Assembly-CSharp.dll:.PlayerSounds
 9364f1081cdec0b46b8b97ec3e07d131 Assembly-CSharp.dll:.WaterAnimSpeed
+7a8199783de560f9f33e6740b61f629f Assembly-CSharp.dll:.PlayerControllerRigidbody
 71bb6a6b6c8f052f948db64c7dd3ca4f UnityEngine.Timeline.dll:UnityEngine.Timeline.ActivationPlayableAsset
 06f0fef534ca4c1d6064fd77a26bf722 UnityEngine.Timeline.dll:UnityEngine.Timeline.ActivationTrack
 8747051d8c53856e2def93af4f2a8b08 UnityEngine.Timeline.dll:UnityEngine.Timeline.AnimationPlayableAsset
@@ -180,3 +181,5 @@ c6666661329916e218bee7f5e79e60f5 Unity.TextMeshPro.dll:TMPro.TextMeshPro
 71bb6a6b6c8f052f948db64c7dd3ca4f Assembly-CSharp.dll:.WaterFloatScript
 8649814970b42d345b89944b862453cc Unity.TextMeshPro.dll:TMPro.TMP_SubMesh
 b3a01ce5b24fd91652aa51bdd1640121 Assembly-CSharp.dll:.TopDownCharacter
+57c99c1f4fc2c2b46b9964cd1b8da9a9 Assembly-CSharp.dll:.StaffAnimate
+bb91c61daad9f602bdfc522baabacb6b Assembly-CSharp.dll:.FireballScript

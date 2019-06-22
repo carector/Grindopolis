@@ -1,4 +1,4 @@
 sceneSetups:
-- path: Assets/Scenes/RigidbodyControllerTest.unity
+- path: Assets/Scenes/Grindworld.unity
   isLoaded: 1
   isActive: 1

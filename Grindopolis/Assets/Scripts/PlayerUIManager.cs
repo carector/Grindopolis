@@ -26,7 +26,7 @@ public class PlayerUIManager : MonoBehaviour
 
     InteractableNPC storedNpc;
     AudioSource audio;
-    PlayerController pc;
+    PlayerControllerRigidbody pc;
     PlayerLook pl;
     RectTransform dialogBg;
     Image dialogNameBg;
@@ -60,7 +60,7 @@ public class PlayerUIManager : MonoBehaviour
         audio = GetComponent<AudioSource>();
         inputf = GetComponentInChildren<InputField>();
         inputf.enabled = false;
-        pc = player.GetComponent<PlayerController>();
+        pc = player.GetComponent<PlayerControllerRigidbody>();
         pl = player.GetComponentInChildren<PlayerLook>();
         drop = GetComponentInChildren<Dropdown>();
         drop.enabled = false;
@@ -137,7 +137,7 @@ public class PlayerUIManager : MonoBehaviour
         UpdateColor();
         UpdateName();
 
-        player.GetComponent<PlayerController>().CmdUpdatePlayerInfo(playerColor, playerName);
+        player.GetComponent<PlayerControllerRigidbody>().CmdUpdatePlayerInfo(playerColor, playerName);
     }
 
     public void EnableCrosshair()

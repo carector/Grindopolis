@@ -693,7 +693,7 @@ public class PlayerController : NetworkBehaviour
 
             // Instantiate name displayer on any players that aren't the client's player
             GameObject nameDisplayer = Instantiate(nameDisplayerPrefab, this.transform);
-            nameDisplayer.GetComponent<PlayerNameDisplayer>().thisPlayer = this;
+            //nameDisplayer.GetComponent<PlayerNameDisplayer>().thisPlayer = this;
             nameDisplayer.transform.localPosition = new Vector3(0, 1.75f, 0);
         }
         // This code runs if the current playercontroller is the one actually being controlled by a client
