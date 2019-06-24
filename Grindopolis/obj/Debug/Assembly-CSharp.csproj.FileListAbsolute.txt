@@ -522,3 +522,15 @@ C:\Users\Basel\Documents\Grindopolis\Grindopolis\obj\Debug\Assembly-CSharp.dll
 C:\Users\Basel\Documents\Grindopolis\Grindopolis\obj\Debug\Assembly-CSharp.pdb
 C:\Users\Basel\Documents\Grindopolis\Grindopolis\Temp\bin\Debug\UnityEditor.UI.dll
 C:\Users\Basel\Documents\Grindopolis\Grindopolis\Temp\bin\Debug\UnityEditor.UI.xml
+C:\Users\Basel\Documents\Grindopolis\Grindopolis\Temp\bin\Debug\Photon3Unity3D.dll
+C:\Users\Basel\Documents\Grindopolis\Grindopolis\Temp\bin\Debug\websocket-sharp.dll
+C:\Users\Basel\Documents\Grindopolis\Grindopolis\Temp\bin\Debug\PhotonUnityNetworking.Utilities.PhotonPlayer.Editor.pdb
+C:\Users\Basel\Documents\Grindopolis\Grindopolis\Temp\bin\Debug\PhotonUnityNetworking.Utilities.pdb
+C:\Users\Basel\Documents\Grindopolis\Grindopolis\Temp\bin\Debug\PhotonWebSocket.pdb
+C:\Users\Basel\Documents\Grindopolis\Grindopolis\Temp\bin\Debug\PhotonRealtime.pdb
+C:\Users\Basel\Documents\Grindopolis\Grindopolis\Temp\bin\Debug\PhotonUnityNetworking.pdb
+C:\Users\Basel\Documents\Grindopolis\Grindopolis\Temp\bin\Debug\PhotonChat.pdb
+C:\Users\Basel\Documents\Grindopolis\Grindopolis\Temp\bin\Debug\PhotonUnityNetworking.Utilities.Culling.Editor.pdb
+C:\Users\Basel\Documents\Grindopolis\Grindopolis\Temp\bin\Debug\PhotonUnityNetworking.Editor.pdb
+C:\Users\Basel\Documents\Grindopolis\Grindopolis\Temp\bin\Debug\Photon3Unity3D.pdb
+C:\Users\Basel\Documents\Grindopolis\Grindopolis\Temp\bin\Debug\Photon3Unity3D.xml
