@@ -2,18 +2,50 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.Networking;
+
+using Photon.Pun;
 
 [RequireComponent(typeof(Rigidbody))]
 
-public class PlayerControllerRigidbody : NetworkBehaviour
+public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservable
 {
+    // ========== VERY IMPORTANT ==========
+    // OnPhotonSerializeView sends information out to other client players
+    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
+        // Send data
+        if (stream.IsWriting)
+        {
+            stream.SendNext(mVar.isCrouching);
+            stream.SendNext(mVar.playerName);
+            stream.SendNext(mVar.playerMatIndex);
+        }
+        // Recieve data
+        else
+        {
+            mVar.isCrouching = (bool)stream.ReceiveNext();
+            mVar.playerName = (string)stream.ReceiveNext();
+            mVar.playerMatIndex = (int)stream.ReceiveNext();
+        }
+    }
 
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
         rb.freezeRotation = true;
         rb.useGravity = false;
+
+        // Make sure we set this as the local player instance if we are the local player
+        if (photonView.IsMine)
+        {
+            LocalPlayerInstance = gameObject;
+        }
+        else
+        {
+            LocalPlayerInstance = null;
+        }
+
+        DontDestroyOnLoad(gameObject);
     }
 
     // Public vars
@@ -21,7 +53,6 @@ public class PlayerControllerRigidbody : NetworkBehaviour
     public class PlayerMovementSettings
     {
         public bool isGrounded;
-        public bool isCrouching = false;
         public bool canMove = true;
         public bool canDoubleJump;
         public float gravity = 1;
@@ -40,16 +71,28 @@ public class PlayerControllerRigidbody : NetworkBehaviour
 
     }
 
+    [System.Serializable]
+    public class MultiplayerVariables
+    {
+        public bool isCrouching;
+        public bool jumping;
+        public bool doubleJumping;
+        public string playerName;
+        public int playerMatIndex;
+    }
+
+    public static GameObject LocalPlayerInstance;
+
     public bool canPickupObjects;
     public PlayerMovementSettings movementSettings;
     public PlayerCombatSettings combatSettings;
+    public MultiplayerVariables mVar;
     public GameObject HUDPrefab;
     public GameObject nameDisplayerPrefab;
     public GameObject heldObject;
     public Material[] playerColors;
 
     public Renderer bodyRenderer;
-    public PlayerNetworkScript pns; // lmao penis
     public Transform heldObjectFocus;
     public GameObject leftMouseProjectile;
     public Transform projectilePosition;
@@ -64,10 +107,13 @@ public class PlayerControllerRigidbody : NetworkBehaviour
     bool rightAttackCharged;
     bool finishedSetup;
     bool isHoldingObject;
-    bool jumping; // Used for the first frame of when the player jumps - prevents charControl.isGrounded from overwriting value before charControl.Move() is called
-    bool hasDoubleJumped;
     bool adjustedMidairMovement;
-    float remainingJump;
+    bool crouchSfx;
+    bool jumpSfx;
+    bool doubleJumpSfx;
+    bool inWater;
+    int storedColor = -1;
+
     public float groundCheckOffset = 1.01f;
 
     Rigidbody rb;
@@ -75,7 +121,6 @@ public class PlayerControllerRigidbody : NetworkBehaviour
 
     Camera cam;
 
-    NetworkManagerScript nms;
     PlayerSounds pSounds;
     PlayerUIManager uiMan;
 
@@ -94,19 +139,71 @@ public class PlayerControllerRigidbody : NetworkBehaviour
 
     PickupScript pickup;
 
+    GameObject nameDisplayer;
+
     // Use this for initialization
     void Start()
     {
         cam = GetComponentInChildren<Camera>();
-        nms = GameObject.Find("NetworkManager").GetComponent<NetworkManagerScript>();
-        pns = GameObject.Find("PlayerConnection(Clone)").GetComponent<PlayerNetworkScript>();
-        pns.name = "PlayerConnection" + nms.numConnectedPlayers;
 
         // Initialize positions
         currentPos = transform.position;
         previousPos = transform.position;
 
-        StartCoroutine(OnStartCoroutine());
+        // Start routine
+        pSounds = GetComponentInChildren<PlayerSounds>();
+
+        // Assign stored player name to our player's current name
+        if (PlayerPrefs.GetString("PlayerName") != null)
+        {
+            mVar.playerName = PlayerPrefs.GetString("PlayerName");
+        }
+        else
+        {
+            mVar.playerName = "Brand New Grinder";
+        }
+
+        // Also assign stored color index
+        if (PlayerPrefs.HasKey("PlayerColor"))
+        {
+            mVar.playerMatIndex = PlayerPrefs.GetInt("PlayerColor");
+        }
+
+        // Disable our camera if this is not our client player, as well as our audiolistener
+        // if the player is the server, for whatever reason the camera won't disable due to the player not having authority
+        // to bypass this, the server also checks to make sure there's at least one player connected before disabling the camera, in this case the server (i know this is fucking ASS but just roll with it)
+        if ((photonView.IsMine == false && PhotonNetwork.IsConnected))
+        {
+            // Change our name so other spawned players know we're a specific client's player
+            this.gameObject.name = "NonclientPlayer";
+
+            Debug.Log("Non-client player joined");
+            GetComponentInChildren<AudioListener>().enabled = false;
+
+            // Update our material based on what our playerNetworkScript has stored
+            //bodyRenderer.material = playerColors[pns.playerMatIndex];
+
+            // Instantiate name displayer on any players that aren't the client's player
+            nameDisplayer = Instantiate(nameDisplayerPrefab, this.transform);
+            nameDisplayer.GetComponent<PlayerNameDisplayer>().thisPlayer = this;
+            nameDisplayer.transform.localPosition = new Vector3(0, 1.75f, 0);
+        }
+        // This code runs if the current playercontroller is the one actually being controlled by a client
+        else if (photonView.IsMine)
+        {
+            cam.enabled = true;
+
+            // Change our name so other spawned players know we're a specific client's player
+            this.gameObject.name = "ClientPlayer";
+
+            GameObject hud = Instantiate(HUDPrefab, this.transform);
+            uiMan = hud.GetComponent<PlayerUIManager>();
+            uiMan.player = this.gameObject;
+
+            cam.GetComponent<AudioSource>().spatialBlend = 0;
+        }
+
+        //StartCoroutine(OnStartCoroutine());
     }
     void OnEnable()
     {
@@ -117,31 +214,32 @@ public class PlayerControllerRigidbody : NetworkBehaviour
     // Input and jumping controlled via Update so nothing is missed
     void Update()
     {
+        // All content that doesn't require this to be the client's player goes here
+
         // Make sure this is our client's player
-        if (!hasAuthority || !finishedSetup)
+        if (photonView.IsMine == false && PhotonNetwork.IsConnected)
         {
+            //print("Player is not master client!");
             return;
         }
 
         if (movementSettings.isGrounded)
         {
-            // Play footstep sounds
-            if ((Vector3.Distance(footstepPos, transform.position) >= 3f))
-            {
-                footstepPos = transform.position;
-                CmdPlaySFX(0);
-            }
-
             Vector3 velocity = rb.velocity;
 
+            mVar.jumping = false;
+            mVar.doubleJumping = false;
+
+
             // Jump
-            if (Input.GetButtonDown("Jump"))
+            if (Input.GetButtonDown("Jump") && !uiMan.menuOpen)
             {
                 rb.velocity = new Vector3(velocity.x, CalculateJumpVerticalSpeed(), velocity.z);
-                CmdPlaySFX(1);
+                photonView.RPC("PlayJumpSound", RpcTarget.All);
+                mVar.jumping = true;
             }
         }
-        else if (!hasDoubleJumped)
+        else if (!mVar.doubleJumping && !uiMan.menuOpen)
         {
             Vector3 velocity = rb.velocity;
 
@@ -149,74 +247,35 @@ public class PlayerControllerRigidbody : NetworkBehaviour
             if (Input.GetButtonDown("Jump"))
             {
                 rb.velocity = new Vector3(velocity.x, CalculateJumpVerticalSpeed(), velocity.z);
-                CmdPlaySFX(2);
-                hasDoubleJumped = true;
+                photonView.RPC("PlayJumpSound", RpcTarget.All);
+                mVar.doubleJumping = true;
             }
         }
         movementSettings.isGrounded = GroundCheck();
 
         // Attack check
-        if(Input.GetMouseButtonUp(0))
+        if (Input.GetMouseButtonUp(0) && !uiMan.menuOpen)
         {
-            GameObject proj = Instantiate(leftMouseProjectile, projectilePosition.position, projectilePosition.rotation);
+            GameObject proj = PhotonNetwork.Instantiate(this.leftMouseProjectile.name, projectilePosition.position, projectilePosition.rotation);
             proj.GetComponent<FireballScript>().playerRb = rb;
-            pns.SpawnProjectile(proj);
         }
-        /*
-        // Update our current position
-        currentPos = transform.position;
-
-        // Update our velocity based on our position values
-        storedVelocity = (currentPos - previousPos) / Time.deltaTime;
-
-        // Check for footstep or hit ground sfx
-        if (movementSettings.isGrounded)
-        {
-            movementSettings.fallingSpeed = 0;
-
-            if ((Vector3.Distance(footstepPos, transform.position) >= 3.5f))
-            {
-                footstepPos = transform.position;
-                CmdPlaySFX(0);
-            }
-        }
-
-        if (Input.GetButtonDown("Jump") && movementSettings.canMove)
-        {
-            if (charControl.isGrounded && !SlopeCheck())
-            {
-                Jump(false);
-            }
-            else if (!hasDoubleJumped)
-            {
-                Jump(true);
-                hasDoubleJumped = true;
-            }
-        }
-        */
 
         canStandUp = CeilingRaycastCheck();
 
         // If we're crouching, set that to be true and play our sound effect
-        if (Input.GetKeyDown(KeyCode.LeftControl) && !movementSettings.isCrouching)
+        if (Input.GetKeyDown(KeyCode.LeftControl) && !mVar.isCrouching && !uiMan.menuOpen)
         {
-            CmdPlaySFX(3);
-            CmdSetCrouchStatus(true);
-            movementSettings.isCrouching = true;
+            mVar.isCrouching = true;
         }
         else if (canStandUp && Input.GetKeyUp(KeyCode.LeftControl))
         {
-            CmdPlaySFX(4);
-            CmdSetCrouchStatus(false);
-            movementSettings.isCrouching = false;
+            mVar.isCrouching = false;
         }
-        else if (!Input.GetKey(KeyCode.LeftControl) && movementSettings.isCrouching)
+        else if (!Input.GetKey(KeyCode.LeftControl) && mVar.isCrouching)
         {
             if (canStandUp)
             {
-                CmdPlaySFX(4);
-                CmdSetCrouchStatus(false);
-                movementSettings.isCrouching = false;
+                mVar.isCrouching = false;
             }
         }
 
@@ -240,8 +299,12 @@ public class PlayerControllerRigidbody : NetworkBehaviour
             else if (Input.GetKeyDown(KeyCode.F))
             {
                 heldObject.transform.parent = null;
-                heldObject.GetComponent<Rigidbody>().velocity = storedVelocity;
-                heldObject.GetComponent<Rigidbody>().AddForce(cam.transform.TransformDirection(Vector3.forward * 500));
+                Rigidbody hrb = heldObject.GetComponent<Rigidbody>();
+
+                hrb.isKinematic = false;
+                hrb.velocity = storedVelocity * hrb.mass;
+                hrb.AddForce(cam.transform.TransformDirection(Vector3.forward * 500) * hrb.mass);
+
                 heldObject = null;
 
                 DropObject();
@@ -255,10 +318,65 @@ public class PlayerControllerRigidbody : NetworkBehaviour
     }
 
     // Movement calculation and physics are controlled with FixedUpdate
+    // Network-related code also is triggered from here
     private void FixedUpdate()
     {
+        // All content that doesn't require this to be the client's player goes here
+
+        // Set our color
+        if (storedColor != mVar.playerMatIndex)
+        {
+            bodyRenderer.material = playerColors[mVar.playerMatIndex];
+            storedColor = mVar.playerMatIndex;
+        }
+
+        // Play footstep sounds
+        if ((Vector3.Distance(footstepPos, transform.position) >= 3f) && GroundCheck())
+        {
+            footstepPos = transform.position;
+            PlaySFX(0);
+        }
+
+        // If we're crouching, adjust our player's height and camera position to give the illusion of crouching
+        CapsuleCollider cc = GetComponent<CapsuleCollider>();
+
+        if (mVar.isCrouching)
+        {
+            if (!crouchSfx)
+            {
+                PlaySFX(3);
+                crouchSfx = true;
+            }
+            cc.center = new Vector3(0, -0.5f, 0);
+            cc.height = 1;
+            bodyRenderer.transform.localPosition = Vector3.Lerp(bodyRenderer.transform.localPosition, new Vector3(0, -0.5307f, 0), 0.25f);
+            bodyRenderer.transform.localScale = Vector3.Lerp(bodyRenderer.transform.localScale, new Vector3(0.34343f, 0.7482614f, 0.34343f), 0.25f);
+
+            cam.transform.localPosition = Vector3.Lerp(cam.transform.localPosition, Vector3.zero, 0.25f);
+
+            groundCheckOffset = Mathf.Lerp(groundCheckOffset, 0.75f, 0.25f);
+        }
+        else
+        {
+            if (crouchSfx)
+            {
+                PlaySFX(4);
+                crouchSfx = false;
+            }
+            cc.center = Vector3.zero;
+            cc.height = 2.4f;
+
+            bodyRenderer.transform.localPosition = Vector3.Lerp(bodyRenderer.transform.localPosition, new Vector3(0, -0.0621f, 0), 0.25f);
+            bodyRenderer.transform.localScale = Vector3.Lerp(bodyRenderer.transform.localScale, new Vector3(0.34343f, 1.12325f, 0.34343f), 0.25f);
+
+            cam.transform.localPosition = Vector3.Lerp(cam.transform.localPosition, new Vector3(0, 1, 0), 0.25f);
+
+            groundCheckOffset = Mathf.Lerp(groundCheckOffset, 1.01f, 0.25f);
+        }
+
+
         // Make sure this is our client's player
-        if (!hasAuthority || !finishedSetup)
+        if (photonView.IsMine == false && PhotonNetwork.IsConnected)
         {
             return;
         }
@@ -288,12 +406,11 @@ public class PlayerControllerRigidbody : NetworkBehaviour
 
             if (!uiMan.menuOpen)
                 rb.AddForce(velocityChange, ForceMode.Impulse);
-
-            hasDoubleJumped = false;
         }
 
         else
         {
+
             // Calculate how fast we should be moving
             Vector3 targetVelocity = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
             targetVelocity = transform.TransformDirection(targetVelocity);
@@ -308,6 +425,7 @@ public class PlayerControllerRigidbody : NetworkBehaviour
             rb.AddForce(velocityChange);
 
             rb.AddForce(velocityChange);
+
         }
 
 
@@ -315,53 +433,6 @@ public class PlayerControllerRigidbody : NetworkBehaviour
         rb.AddForce(new Vector3(0, -movementSettings.gravity * rb.mass, 0));
 
         movementSettings.isGrounded = GroundCheck();
-
-        CapsuleCollider cc = GetComponent<CapsuleCollider>();
-
-        // If we're crouching, adjust our player's height and camera position to give the illusion of crouching
-        if (movementSettings.isCrouching)
-        {
-            
-            cc.center = new Vector3(0, -0.5f, 0);
-            cc.height = 1;
-            bodyRenderer.transform.localPosition = Vector3.Lerp(bodyRenderer.transform.localPosition, new Vector3(0, -0.5307f, 0), 0.25f);
-            bodyRenderer.transform.localScale = Vector3.Lerp(bodyRenderer.transform.localScale, new Vector3(0.34343f, 0.7482614f, 0.34343f), 0.25f);
-
-            cam.transform.localPosition = Vector3.Lerp(cam.transform.localPosition, Vector3.zero, 0.25f);
-
-            groundCheckOffset = Mathf.Lerp(groundCheckOffset, 0.75f, 0.25f);
-        }
-        else
-        {
-            cc.center = Vector3.zero;
-            cc.height = 2.4f;
-
-            bodyRenderer.transform.localPosition = Vector3.Lerp(bodyRenderer.transform.localPosition, new Vector3(0, -0.0621f, 0), 0.25f);
-            bodyRenderer.transform.localScale = Vector3.Lerp(bodyRenderer.transform.localScale, new Vector3(0.34343f, 1.12325f, 0.34343f), 0.25f);
-
-            cam.transform.localPosition = Vector3.Lerp(cam.transform.localPosition, new Vector3(0, 1, 0), 0.25f);
-
-            groundCheckOffset = Mathf.Lerp(groundCheckOffset, 1.01f, 0.25f);
-        }
-        /*
-        // All future code is only run clientside
-        // Make sure this is our client's player
-        if (!hasAuthority || !finishedSetup)
-            return;
-
-        // Make sure we can actually move first
-        if (movementSettings.canMove)
-        {
-            // If we're sprinting, move the player with our sprint speed.
-            // Make sure we aren't crouching too.
-            if (Input.GetButton("Sprint") && !movementSettings.isCrouching)
-                MovePlayer(movementSettings.runSpeed);
-            // Otherwise, move with the walk speed.
-            else
-                MovePlayer(movementSettings.walkSpeed);
-        }
-        */
-
     }
 
     // Boosts the player in a direction in midair
@@ -379,6 +450,9 @@ public class PlayerControllerRigidbody : NetworkBehaviour
 
     bool GroundCheck()
     {
+        // Begin by checking if our velocity is greater than zero - can't be grounded if it is
+        Vector3 velocity = rb.velocity;
+
         RaycastHit hit;
 
         // rayStart begins at 1.01 units lower than the player to make sure we don’t detect the player in our raycast
@@ -388,6 +462,14 @@ public class PlayerControllerRigidbody : NetworkBehaviour
         // Raycast should extend to the maximum angle the player can walk up
         if (Physics.Raycast(rayStart, -transform.up, out hit, 0.3f))
         {
+            if(hit.collider.tag == "Water")
+            {
+                inWater = true;
+                mVar.doubleJumping = true;
+                return false;
+            }
+
+            inWater = false;
             return true;
         }
         else
@@ -395,9 +477,6 @@ public class PlayerControllerRigidbody : NetworkBehaviour
             // If we don't hit anything, fall normally
             return false;
         }
-        
-
-        
     }
 
     bool CeilingRaycastCheck()
@@ -470,43 +549,14 @@ public class PlayerControllerRigidbody : NetworkBehaviour
     void PickupObject()
     {
         Debug.Log("Picked up object");
-        pickup.isHeld = true;
-        pickup.holder = this.gameObject;
-        pickup.transform.parent = this.transform;
+        pickup.SetPickupState(true, this.gameObject);
     }
     void DropObject()
     {
-        pickup.isHeld = false;
-        pickup.holder = null;
-        pickup.transform.parent = null;
+        pickup.SetPickupState(false, this.gameObject);
     }
 
-    [Command]
-    void CmdPlaySFX(int a)
-    {
-        RpcPlaySFX(a);
-    }
-
-    [Command]
-    public void CmdLaunchProjectile(int proj)
-    {
-        RpcLaunchProjectile(proj);
-    }
-
-    [Command]
-    public void CmdUpdatePlayerInfo(int materialIndex, string name)
-    {
-        RpcUpdatePlayerInfo(materialIndex, name);
-    }
-
-    [Command]
-    public void CmdSetCrouchStatus(bool s)
-    {
-        RpcSetCrouchStatus(s);
-    }
-
-    [ClientRpc]
-    void RpcPlaySFX(int a)
+    void PlaySFX(int ind)
     {
         // Play different sfx based on int
         // 0 = Footsteps
@@ -515,111 +565,43 @@ public class PlayerControllerRigidbody : NetworkBehaviour
         // 3 = Crouch
         // 4 = Uncrouch
 
-        if (a == 0)
+        if (ind == 0)
         {
             pSounds.PlayFootstepSound();
         }
-        else if (a == 1)
+        else if (ind == 1)
         {
             pSounds.PlayJumpSound();
         }
-        else if (a == 2)
+        else if (ind == 2)
         {
             pSounds.PlayDoubleJumpSound();
         }
-        else if (a == 3)
+        else if (ind == 3)
         {
             pSounds.PlayCrouchSound();
         }
-        else if (a == 4)
+        else if (ind == 4)
         {
             pSounds.PlayUncrouchSound();
         }
 
+        // Be sure to reset sfxIndex so we don't constantly play sfxIndex
     }
 
-    [ClientRpc]
-    public void RpcLaunchProjectile(int projNum)
+    [PunRPC]
+    void PlayJumpSound()
     {
-        GameObject proj = Instantiate(leftMouseProjectile, projectilePosition.position, projectilePosition.localRotation);
-        proj.transform.parent = null;
-        proj.GetComponent<Rigidbody>().AddRelativeForce(-cam.transform.right * 1000);
-        NetworkServer.Spawn(proj);
+        PlaySFX(1);
+        mVar.jumping = true;
     }
 
-    [ClientRpc]
-    void RpcUpdatePlayerInfo(int materialIndex, string name)
+    public void UpdatePlayerInfo(int materialIndex, string name)
     {
-        pns.playerName = name;
-        pns.playerMatIndex = materialIndex;
-
-        bodyRenderer.material = playerColors[materialIndex];
-    }
-
-    [ClientRpc]
-    public void RpcSetCrouchStatus(bool s)
-    {
-        movementSettings.isCrouching = s;
-        canStandUp = true;
-    }
-
-
-    IEnumerator OnStartCoroutine()
-    {
-        yield return new WaitForSeconds(0.05f);
-
-        Debug.Log("Player joined");
-        pSounds = GetComponentInChildren<PlayerSounds>();
-
-        // Disable our camera if this is not our client player, as well as our audiolistener
-        // if the player is the server, for whatever reason the camera won't disable due to the player not having authority
-        // to bypass this, the server also checks to make sure there's at least one player connected before disabling the camera, in this case the server (i know this is fucking ASS but just roll with it)
-        if (!hasAuthority)
-        {
-            // Change our name so other spawned players know we're a specific client's player
-            this.gameObject.name = "NonclientPlayer";
-
-            Debug.Log("Non-client player joined");
-            GetComponentInChildren<AudioListener>().enabled = false;
-
-            // Update our material based on what our playerNetworkScript has stored
-            bodyRenderer.material = playerColors[pns.playerMatIndex];
-
-            // Instantiate name displayer on any players that aren't the client's player
-            GameObject nameDisplayer = Instantiate(nameDisplayerPrefab, this.transform);
-            nameDisplayer.GetComponent<PlayerNameDisplayer>().thisPlayer = this;
-            nameDisplayer.transform.localPosition = new Vector3(0, 1.75f, 0);
-        }
-        // This code runs if the current playercontroller is the one actually being controlled by a client
-        else if (hasAuthority || nms.numConnectedPlayers == 0)
-        {
-            cam.enabled = true;
-
-            // Change our name so other spawned players know we're a specific client's player
-            this.gameObject.name = "ClientPlayer";
-
-            GameObject hud = Instantiate(HUDPrefab, this.transform);
-            uiMan = hud.GetComponent<PlayerUIManager>();
-            uiMan.player = this.gameObject;
-
-            cam.GetComponent<AudioSource>().spatialBlend = 0;
-
-            /*
-            uiMan.hudCanvas.worldCamera = cam;
-            uiMan.hudCanvas.planeDistance = 0.15f;
-            uiMan.menuCanvas.worldCamera = cam;
-            uiMan.menuCanvas.planeDistance = 0.15f;
-            */
-
-        }
-
-        nms.numConnectedPlayers++;
-        print("Player " + nms.numConnectedPlayers + " setup complete.");
-
-        if (pns.playerName == "")
-            pns.playerName = "Grinder " + nms.numConnectedPlayers;
-
-        finishedSetup = true;
+        mVar.playerName = name;
+        PlayerPrefs.SetString("PlayerName", name);
+        mVar.playerMatIndex = materialIndex;
+        PlayerPrefs.SetInt("PlayerColor", materialIndex);
     }
 }
 /*

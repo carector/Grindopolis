@@ -7,7 +7,7 @@ public class PlayerNameDisplayer : MonoBehaviour
 {
     Image nameBackground;
     Text nameText;
-    GameObject playerTarget;
+    public GameObject playerTarget;
     public PlayerControllerRigidbody thisPlayer;
 
 
@@ -36,7 +36,7 @@ public class PlayerNameDisplayer : MonoBehaviour
 
             transform.rotation = lookAt;
 
-            nameText.text = thisPlayer.pns.playerName;
+            nameText.text = thisPlayer.mVar.playerName;
         }
     }
 

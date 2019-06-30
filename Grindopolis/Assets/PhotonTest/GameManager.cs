@@ -10,9 +10,20 @@ public class GameManager : MonoBehaviourPunCallbacks
 {
     public static GameManager instance;
 
+    [SerializeField]
+    private GameObject playerPrefab;
+
     private void Start()
     {
         instance = this;
+
+        if(playerPrefab != null)
+        {
+            if(PlayerControllerRigidbody.LocalPlayerInstance == null) // Will be true by default if the scene we loaded into already has a player in it, which tells us we need to create a player
+            {
+                PhotonNetwork.Instantiate(this.playerPrefab.name, new Vector3(Random.Range(-10, 10), 1.2f, Random.Range(-5, -15)), Quaternion.identity, 0);
+            }
+        }
     }
 
     public override void OnLeftRoom()
@@ -25,6 +36,7 @@ public class GameManager : MonoBehaviourPunCallbacks
         PhotonNetwork.LeaveRoom();
     }
 
+    // current problem source
     void LoadArena()
     {
         if (!PhotonNetwork.IsMasterClient) // If we aren't the player who started the game
@@ -32,7 +44,7 @@ public class GameManager : MonoBehaviourPunCallbacks
             Debug.LogError("PhotonNetwork: shit myself ouch");
         }
 
-        PhotonNetwork.LoadLevel("Room for " + PhotonNetwork.CurrentRoom.PlayerCount); // Loads a room depending on the number of players in game
+        //PhotonNetwork.LoadLevel("GrindworldPhoton");
     }
 
     public override void OnPlayerEnteredRoom(Player other)
@@ -48,9 +60,8 @@ public class GameManager : MonoBehaviourPunCallbacks
         if (PhotonNetwork.IsMasterClient)
         {
             Debug.LogFormat("OnPlayerLeftRoom IsMasterClient {0}", PhotonNetwork.IsMasterClient); // called before OnPlayerLeftRoom
-
-
-            LoadArena();
+        
+            // Need to find a way to destroy the player object
         }
     }
 }

@@ -44,6 +44,7 @@ public class PlayerUIManager : MonoBehaviour
     void Start()
     {
         Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Locked;
 
         //speedText = GameObject.Find("SpeedText").GetComponent<Text>();
         line1 = GameObject.Find("DialogLine1").GetComponent<Text>();
@@ -86,6 +87,7 @@ public class PlayerUIManager : MonoBehaviour
                 menuCanvas.enabled = true;
                 menuOpen = true;
                 Cursor.visible = true;
+                Cursor.lockState = CursorLockMode.None;
             }
             else
             {
@@ -100,6 +102,7 @@ public class PlayerUIManager : MonoBehaviour
                 menuCanvas.enabled = false;
                 menuOpen = false;
                 Cursor.visible = false;
+                Cursor.lockState = CursorLockMode.Locked;
             }
         }
 
@@ -137,7 +140,7 @@ public class PlayerUIManager : MonoBehaviour
         UpdateColor();
         UpdateName();
 
-        player.GetComponent<PlayerControllerRigidbody>().CmdUpdatePlayerInfo(playerColor, playerName);
+        player.GetComponent<PlayerControllerRigidbody>().UpdatePlayerInfo(playerColor, playerName);
     }
 
     public void EnableCrosshair()

@@ -1,9 +1,10 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Networking;
 
-public class PlayerLook : MonoBehaviour
+using Photon.Pun;
+
+public class PlayerLook : MonoBehaviourPunCallbacks
 {
     // Reference to player
     public Transform playerBody;
@@ -32,7 +33,7 @@ public class PlayerLook : MonoBehaviour
     void Update()
     {
         // Make sure this is our client's player
-        if (!parentMove.hasAuthority)
+        if (!parentMove.photonView.IsMine)
             return;
 
         RotateCamera();

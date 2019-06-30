@@ -2,9 +2,26 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
+using Photon.Pun;
 
-public class PickupScript : NetworkBehaviour
+public class PickupScript : MonoBehaviourPunCallbacks, IPunObservable
 {
+    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
+        // Send data
+        if (stream.IsWriting)
+        {
+            stream.SendNext(isHeld);
+            stream.SendNext(holderName);
+        }
+        // Recieve data
+        else
+        {
+            isHeld = (bool)stream.ReceiveNext();
+            holderName = (string)stream.ReceiveNext();
+        }
+    }
+
     public bool isHeld;
 
     public string pickupName;
@@ -12,6 +29,7 @@ public class PickupScript : NetworkBehaviour
     public GameObject holder;
 
     Transform focus;
+    string holderName;
     bool hasSetToHeld;
     Rigidbody rb;
     Collider col;
@@ -34,28 +52,24 @@ public class PickupScript : NetworkBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (isHeld)
+        if (isHeld && holder.GetPhotonView().IsMine)
         {
+            holder = GameObject.Find(holderName);
             if (holder != null)
             {
-                focus = holder.GetComponent<PlayerController>().heldObjectFocus;
+                focus = holder.GetComponent<PlayerControllerRigidbody>().heldObjectFocus;
                 transform.position = Vector3.Lerp(transform.position, focus.position, 0.25f);
                 transform.rotation = Quaternion.Lerp(transform.rotation, new Quaternion(0, focus.rotation.y, 0, focus.rotation.w), 0.25f);
             }
 
             rb.useGravity = false;
+            rb.isKinematic = true;
             col.enabled = false;
-            
+
+            transform.parent = focus;
+
             rb.velocity = Vector3.Lerp(rb.velocity, Vector3.zero, 0.5f);
             rb.angularVelocity = Vector3.Lerp(rb.velocity, Vector3.zero, 0.5f);
-
-            // Send the command to signal isHeld is true
-            // Also check to make sure we haven't done this already so we aren't constantly sending data
-            if (!hasSetToHeld)
-            {
-                CmdSendHeldBool(true);
-                hasSetToHeld = true;
-            }
         }
         else
         {
@@ -65,35 +79,37 @@ public class PickupScript : NetworkBehaviour
 
             if(col.enabled == false)
             {
-                col.enabled = false;
                 col.enabled = true;
             }
             rb.useGravity = true;
-
-            // Set isHeld to false, and send the command to set it to false
-            if (hasSetToHeld)
-            {
-                CmdSendHeldBool(false);
-                hasSetToHeld = false;
-            }
+            rb.isKinematic = false;
         }
     }
-
-    // Used to signal that the object has been picked up by some client
-    [Command]
-    void CmdSendHeldBool(bool heldState)
+    public void SetPickupState(bool heldState, GameObject ply)
     {
-        RpcSendHeldBool(heldState);
+        holder = ply;
+        holderName = ply.name;
+        photonView.RPC("RpcSetPickupState", RpcTarget.All, heldState);
     }
-
-    [ClientRpc]
-    void RpcSendHeldBool(bool heldState)
+    // Used to signal that the object has been picked up by some client
+    [PunRPC]
+    void RpcSetPickupState(bool heldState)
     {
         isHeld = heldState;
 
         if(!heldState)
         {
+            rb.useGravity = true;
+            transform.parent = null;
+            focus = null;
             holder = null;
+        }
+        else
+        {
+            rb.useGravity = false;
+            transform.parent = holder.transform;
+            focus = holder.GetComponent<PlayerControllerRigidbody>().heldObjectFocus;
+
         }
     }
     

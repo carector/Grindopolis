@@ -32,5 +32,8 @@ MonoBehaviour:
   - DestroySpaceship
   - Fire
   - RespawnSpaceship
+  - PlayJumpSound
+  - RpcSendHeldBool
+  - RpcSetPickupState
   DisableAutoOpenWizard: 1
   ShowSettings: 1

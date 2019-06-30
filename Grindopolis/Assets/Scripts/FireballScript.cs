@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
+using Photon.Pun;
 
-public class FireballScript : NetworkBehaviour
+public class FireballScript : MonoBehaviourPunCallbacks
 {
     public Rigidbody playerRb;
     public float startSpeed;
@@ -32,7 +33,7 @@ public class FireballScript : NetworkBehaviour
                 Rigidbody rb = hit.GetComponent<Rigidbody>();
 
                 if (rb != null && rb != this.GetComponent<Rigidbody>() && rb != playerRb)
-                    rb.AddExplosionForce(explosionPower, explosionPos, explosionRadius, 3.0F);
+                    rb.AddExplosionForce(explosionPower, explosionPos, explosionRadius, 1f);
             }
             StartCoroutine(Countdown());
         }
@@ -43,13 +44,14 @@ public class FireballScript : NetworkBehaviour
     private void OnTriggerEnter(Collider other)
     {
         //if(playerRb.gameObject != null && other.gameObject != playerRb.gameObject)
-            explode = true;
+        explode = true;
     }
 
     IEnumerator Countdown()
     {
-        yield return new WaitForSeconds(0.25f);
-        NetworkIdentity.Destroy(this.gameObject);
+        yield return new WaitForSeconds(0.35f);
 
+        if(photonView.IsMine)
+            PhotonNetwork.Destroy(this.gameObject);
     }
 }

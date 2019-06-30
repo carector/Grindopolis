@@ -48,6 +48,6 @@ public class MusicTransitionTrigger : MonoBehaviour
             audio.volume = 0;
 
         audioToFadeIn.volume = targetVolume;
-        Debug.Log("Completed transition");
+        //Debug.Log("Completed transition");
     }
 }

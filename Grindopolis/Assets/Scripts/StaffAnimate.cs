@@ -1,9 +1,24 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Photon.Pun;
 
-public class StaffAnimate : MonoBehaviour
+public class StaffAnimate : MonoBehaviourPunCallbacks, IPunObservable
 {
+    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
+        // Send data
+        if (stream.IsWriting)
+        {
+            stream.SendNext(emissionState);
+        }
+        // Recieve data
+        else
+        {
+            emissionState = (bool)stream.ReceiveNext();
+        }
+    }
+
     public GameObject staffPosition;
 
     PlayerControllerRigidbody pcr;
@@ -16,6 +31,8 @@ public class StaffAnimate : MonoBehaviour
     Light lgt;
 
     float staffZPos;
+    bool paused;
+    bool emissionState;
 
     // Start is called before the first frame update
     void Start()
@@ -34,28 +51,45 @@ public class StaffAnimate : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
-        if (!pcr.hasAuthority)
+        part.enableEmission = emissionState;
+
+        if (!photonView.IsMine)
             return;
 
         CalculateLookMovement();
 
         // Particle calculations
-        if(Input.GetMouseButton(0))
+        if (Input.GetMouseButton(0) && !paused)
         {
-            part.enableEmission = true;
+            emissionState = true;
             lgt.range = Mathf.Lerp(lgt.range, 10f, 0.25f);
             staffZPos = 0.35f;
         }
         else
         {
-            part.enableEmission = false;
+            emissionState = false;
             lgt.range = Mathf.Lerp(lgt.range, 0, 0.25f);
             staffZPos = 0.475f;
         }
     }
     private void Update()
     {
-        if (Input.GetMouseButtonUp(0))
+        if (!photonView.IsMine)
+            return;
+
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            if (!paused)
+            {
+                paused = true;
+            }
+            else
+            {
+                paused = false;
+            }
+        }
+
+        if (Input.GetMouseButtonUp(0) && !paused)
         {
             transform.localPosition = new Vector3(transform.localPosition.x, transform.localPosition.y, 0.15f);
         }
@@ -69,7 +103,7 @@ public class StaffAnimate : MonoBehaviour
         camMovementX = pcr.transform.rotation.eulerAngles;
         camMovementY = pLook.transform.rotation.eulerAngles;
 
-        transform.localPosition = Vector3.Lerp(transform.localPosition, new Vector3(startingPosition.x - Mathf.Clamp(((camMovementX.y - previousCamMovementX.y)*0.2f), -0.2f, 0.2f), startingPosition.y + Mathf.Clamp(((camMovementY.x - previousCamMovementY.x) * 0.2f), -0.2f, 0.2f), staffZPos), 0.1f);
+        transform.localPosition = Vector3.Lerp(transform.localPosition, new Vector3(startingPosition.x - Mathf.Clamp(((camMovementX.y - previousCamMovementX.y) * 0.2f), -0.2f, 0.2f), startingPosition.y + Mathf.Clamp(((camMovementY.x - previousCamMovementY.x) * 0.2f), -0.2f, 0.2f), staffZPos), 0.1f);
         //transform.rotation = Quaternion.Lerp(transform.rotation, staffPosition.transform.rotation, 0.4f);
     }
 }
