@@ -57,11 +57,9 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     public override void OnPlayerLeftRoom(Player other)
     {
-        if (PhotonNetwork.IsMasterClient)
+        if (other.IsMasterClient)
         {
-            Debug.LogFormat("OnPlayerLeftRoom IsMasterClient {0}", PhotonNetwork.IsMasterClient); // called before OnPlayerLeftRoom
-        
-            // Need to find a way to destroy the player object
+            LeaveRoom();
         }
     }
 }

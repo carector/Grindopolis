@@ -35,5 +35,6 @@ MonoBehaviour:
   - PlayJumpSound
   - RpcSendHeldBool
   - RpcSetPickupState
+  - UpdateOwnershipRPC
   DisableAutoOpenWizard: 1
   ShowSettings: 1

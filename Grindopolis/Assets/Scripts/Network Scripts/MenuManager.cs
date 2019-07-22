@@ -62,6 +62,8 @@ public class MenuManager : MonoBehaviourPunCallbacks
     {
         isConnecting = true;
 
+        print(PhotonNetwork.CountOfRooms);
+
         // If we are connected, join a random room
         if (PhotonNetwork.IsConnected)
         {
@@ -71,8 +73,15 @@ public class MenuManager : MonoBehaviourPunCallbacks
         // If we aren't connected, try reconnecting - but search for games running the same version we are
         else
         {
-            PhotonNetwork.GameVersion = gameVersion;
-            PhotonNetwork.ConnectUsingSettings();
+            if (PhotonNetwork.CountOfRooms == 0)
+            {
+                PhotonNetwork.GameVersion = gameVersion;
+                PhotonNetwork.ConnectUsingSettings();
+            }
+            else
+            {
+                Application.LoadLevel(Application.loadedLevel);
+            }
         }
     }
 

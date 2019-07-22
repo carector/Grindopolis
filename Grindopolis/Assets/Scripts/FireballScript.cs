@@ -24,6 +24,7 @@ public class FireballScript : MonoBehaviourPunCallbacks
     {
         if (explode)
         {
+            /*
             this.GetComponent<Rigidbody>().isKinematic = true;
             Vector3 explosionPos = transform.position;
 
@@ -35,6 +36,7 @@ public class FireballScript : MonoBehaviourPunCallbacks
                 if (rb != null && rb != this.GetComponent<Rigidbody>() && rb != playerRb)
                     rb.AddExplosionForce(explosionPower, explosionPos, explosionRadius, 1f);
             }
+            */
             StartCoroutine(Countdown());
         }
 

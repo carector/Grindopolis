@@ -51,26 +51,35 @@ public class StaffAnimate : MonoBehaviourPunCallbacks, IPunObservable
     // Update is called once per frame
     void FixedUpdate()
     {
-        part.enableEmission = emissionState;
+        if (emissionState)
+        {
+            part.startColor = Color.Lerp(part.startColor, Color.white, 0.4f);
+        }
+        else
+        {
+            part.startColor = Color.Lerp(part.startColor, Color.clear, 0.4f);
+        }
 
         if (!photonView.IsMine)
             return;
 
-        CalculateLookMovement();
-
-        // Particle calculations
-        if (Input.GetMouseButton(0) && !paused)
+        if (emissionState)
         {
-            emissionState = true;
-            lgt.range = Mathf.Lerp(lgt.range, 10f, 0.25f);
             staffZPos = 0.35f;
         }
         else
         {
-            emissionState = false;
-            lgt.range = Mathf.Lerp(lgt.range, 0, 0.25f);
             staffZPos = 0.475f;
         }
+
+
+        CalculateLookMovement();
+
+        staffZPos = 0.35f;
+    }
+    public void StaffEmissions(bool state)
+    {
+        emissionState = state;
     }
     private void Update()
     {
@@ -91,7 +100,7 @@ public class StaffAnimate : MonoBehaviourPunCallbacks, IPunObservable
 
         if (Input.GetMouseButtonUp(0) && !paused)
         {
-            transform.localPosition = new Vector3(transform.localPosition.x, transform.localPosition.y, 0.15f);
+            //transform.localPosition = new Vector3(transform.localPosition.x, transform.localPosition.y, 0.15f);
         }
     }
 

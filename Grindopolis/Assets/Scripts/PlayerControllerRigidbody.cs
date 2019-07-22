@@ -19,6 +19,7 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
             stream.SendNext(mVar.isCrouching);
             stream.SendNext(mVar.playerName);
             stream.SendNext(mVar.playerMatIndex);
+            stream.SendNext(vortexPos.GetComponent<ParticleSystem>().startColor.a);
         }
         // Recieve data
         else
@@ -26,6 +27,7 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
             mVar.isCrouching = (bool)stream.ReceiveNext();
             mVar.playerName = (string)stream.ReceiveNext();
             mVar.playerMatIndex = (int)stream.ReceiveNext();
+            vortexPos.GetComponent<ParticleSystem>().startColor = new Color(255, 255, 255, (float)stream.ReceiveNext());
         }
     }
 
@@ -45,7 +47,7 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
             LocalPlayerInstance = null;
         }
 
-        DontDestroyOnLoad(gameObject);
+        //DontDestroyOnLoad(gameObject);
     }
 
     // Public vars
@@ -65,6 +67,8 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
     [System.Serializable]
     public class PlayerCombatSettings
     {
+        public int health;
+        public int mana;
         public bool canAttack = true;
         public GameObject spellObject1;
         public GameObject spellObject2;
@@ -96,7 +100,8 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
     public Transform heldObjectFocus;
     public GameObject leftMouseProjectile;
     public Transform projectilePosition;
-
+    public Light staffLight;
+    public Transform vortexPos;
     // Private vars
     private GameObject storedPlatform;
 
@@ -113,6 +118,8 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
     bool doubleJumpSfx;
     bool inWater;
     int storedColor = -1;
+    bool isDeductingMana;
+    bool isAddingMana;
 
     public float groundCheckOffset = 1.01f;
 
@@ -123,6 +130,7 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
 
     PlayerSounds pSounds;
     PlayerUIManager uiMan;
+    StaffAnimate staff;
 
     Vector3 moveDirHoriz;
     Vector3 moveDirVert;
@@ -200,6 +208,8 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
             uiMan = hud.GetComponent<PlayerUIManager>();
             uiMan.player = this.gameObject;
 
+            staff = GetComponentInChildren<StaffAnimate>();
+
             cam.GetComponent<AudioSource>().spatialBlend = 0;
         }
 
@@ -253,11 +263,114 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
         }
         movementSettings.isGrounded = GroundCheck();
 
-        // Attack check
-        if (Input.GetMouseButtonUp(0) && !uiMan.menuOpen)
+        // Spellcast check
+        if (!uiMan.menuOpen)
         {
-            GameObject proj = PhotonNetwork.Instantiate(this.leftMouseProjectile.name, projectilePosition.position, projectilePosition.rotation);
-            proj.GetComponent<FireballScript>().playerRb = rb;
+            // Execute a different spell depending on what we currently have selected
+
+            // Magic missile
+            if (uiMan.currentSidebarIndex == 0)
+            {
+
+                if (Input.GetMouseButtonDown(0))
+                {
+                    GameObject proj = PhotonNetwork.Instantiate(this.leftMouseProjectile.name, projectilePosition.position, projectilePosition.rotation);
+                    proj.GetComponent<FireballScript>().playerRb = rb;
+                }
+            }
+
+            // Illuminate
+            else if (uiMan.currentSidebarIndex == 1)
+            {
+                if (Input.GetMouseButton(0))
+                {
+                    staffLight.intensity = Mathf.Lerp(staffLight.intensity, 2.5f, 0.25f);
+                }
+                else
+                {
+                    staffLight.intensity = Mathf.Lerp(staffLight.intensity, 0, 0.25f);
+                }
+            }
+
+            // Levitate
+            else if (uiMan.currentSidebarIndex == 2)
+            {
+                vortexPos.transform.rotation = Quaternion.identity;
+
+                Vector3 explosionPos = vortexPos.position;
+                Collider[] colliders = Physics.OverlapSphere(explosionPos, 3);
+
+                if (Input.GetMouseButton(0) && combatSettings.mana > 0)
+                {
+                    if (!isDeductingMana)
+                        //StartCoroutine(DeductMana(0.2f, 1));
+
+                    staff.StaffEmissions(true);
+                    vortexPos.GetComponent<ParticleSystem>().startColor = Color.white;
+
+                    foreach (Collider hit in colliders)
+                    {
+                        if (hit.transform != vortexPos && hit.tag == "Pickup")
+                        {
+                            Vector3 difference = hit.transform.position - vortexPos.position;
+                            float distance = Vector3.Distance(vortexPos.position, hit.transform.position) * 0.25f;
+
+                            hit.GetComponent<PickupOwnershipControl>().UpdateOwnership(photonView.ViewID);
+                            hit.GetComponent<Rigidbody>().useGravity = false;
+                            hit.GetComponent<Rigidbody>().AddForce(-difference.normalized * 1.25f, ForceMode.VelocityChange);
+                            hit.transform.position = Vector3.Lerp(hit.transform.position, vortexPos.transform.position, 0.075f);
+                        }
+                    }
+                }
+                else if (Input.GetMouseButtonUp(0) || combatSettings.mana == 0)
+                {
+                    vortexPos.GetComponent<ParticleSystem>().startColor = Color.clear;
+
+                    staff.StaffEmissions(false);
+
+                    bool launched = false;
+
+                    if (combatSettings.mana >= 15)
+                    {
+                        launched = true;
+                        //StartCoroutine(DeductMana(0, 15));
+                    }
+
+                    foreach (Collider hit in colliders)
+                    {
+                        if (hit.transform != vortexPos && hit.tag == "Pickup")
+                        {
+                            if(launched)
+                                hit.GetComponent<Rigidbody>().AddForce(cam.transform.TransformDirection(0, 0, 20), ForceMode.VelocityChange);
+
+                            hit.GetComponent<Rigidbody>().useGravity = true;
+                        }
+                    }
+                }
+            }
+
+            // Bludgeon
+            else if (uiMan.currentSidebarIndex == 3)
+            {
+
+            }
+
+            // Piss
+            else if (uiMan.currentSidebarIndex == 4)
+            {
+
+            }
+
+
+            // Reset light
+            if (uiMan.currentSidebarIndex != 1)
+                staffLight.intensity = Mathf.Lerp(staffLight.intensity, 0, 0.25f);
+        }
+
+        // Recharge mana if we aren't holding the mouse
+        if(!Input.GetMouseButton(0))
+        {
+
         }
 
         canStandUp = CeilingRaycastCheck();
@@ -462,7 +575,7 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
         // Raycast should extend to the maximum angle the player can walk up
         if (Physics.Raycast(rayStart, -transform.up, out hit, 0.3f))
         {
-            if(hit.collider.tag == "Water")
+            if (hit.collider.tag == "Water")
             {
                 inWater = true;
                 mVar.doubleJumping = true;
@@ -497,7 +610,7 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
         Debug.DrawRay(cam.transform.position, cam.transform.TransformDirection(Vector3.forward * 2.5f), Color.red);
 
         // Automatically disable crosshair - if something is hit, it will override this
-        uiMan.DisableCrosshair();
+        //uiMan.DisableCrosshair();
 
         if (!isHoldingObject)
             uiMan.DisplayHintText("");
@@ -506,12 +619,12 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
         {
             if (hit.collider.tag == "Pickup" && !isHoldingObject)
             {
-                uiMan.EnableCrosshair();
-                pickup = hit.collider.GetComponent<PickupScript>();
-
+                //uiMan.EnableCrosshair();
+                //pickup = hit.collider.GetComponent<PickupScript>();
+                /*
                 if (!pickup.isHeld && canPickupObjects)
                 {
-                    uiMan.EnableCrosshair();
+                    //uiMan.EnableCrosshair();
                     uiMan.DisplayHintText("Press E to pick up " + pickup.pickupName);
 
                     if (Input.GetKeyDown(KeyCode.E))
@@ -523,7 +636,7 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
 
                         isHoldingObject = true;
                     }
-                }
+                }*/
             }
 
             else if (hit.collider.tag == "NPC" && !uiMan.dialogBoxOpen)
@@ -602,6 +715,24 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
         PlayerPrefs.SetString("PlayerName", name);
         mVar.playerMatIndex = materialIndex;
         PlayerPrefs.SetInt("PlayerColor", materialIndex);
+    }
+
+    IEnumerator DeductMana(float speed, int amount)
+    {
+        isDeductingMana = true;
+        combatSettings.mana -= amount;
+        yield return new WaitForSeconds(speed);
+        isDeductingMana = false;
+
+    }
+
+    IEnumerator AddMana(float speed, int amount)
+    {
+        isDeductingMana = true;
+        combatSettings.mana -= amount;
+        yield return new WaitForSeconds(speed);
+        isDeductingMana = false;
+
     }
 }
 /*

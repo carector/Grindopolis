@@ -18,11 +18,21 @@ public class PlayerUIManager : MonoBehaviour
 
     public AudioClip typeSound;
     public Material[] playerColors;
-
+    public RectTransform[] spellSlots;
+    public string[] spellNames;
+    public RectTransform sidebar;
     public GameObject player;
     public Renderer playerBodyRenderer;
-
+    public Text spellNameText;
     public bool dialogBoxOpen;
+    public Text healthText;
+    public Text manaText;
+    public Text hintText;
+
+    bool sidebarOpen;
+    public int currentSidebarIndex;
+    float sidebarOpenTime = 4;
+
 
     InteractableNPC storedNpc;
     AudioSource audio;
@@ -32,13 +42,15 @@ public class PlayerUIManager : MonoBehaviour
     Image dialogNameBg;
     Image crosshair;
     Image pressEIndicator;
+
+    RectTransform cursor;
     Text line1;
     Text line2;
     Text line3;
     Text lineName;
-    Text hintText;
-    //Text speedText;
     
+    //Text speedText;
+
 
     // Start is called before the first frame update
     void Start()
@@ -50,11 +62,12 @@ public class PlayerUIManager : MonoBehaviour
         line1 = GameObject.Find("DialogLine1").GetComponent<Text>();
         line2 = GameObject.Find("DialogLine2").GetComponent<Text>();
         line3 = GameObject.Find("DialogLine3").GetComponent<Text>();
-        hintText = GameObject.Find("HintText").GetComponent<Text>();
         lineName = GameObject.Find("DialogNameLine").GetComponent<Text>();
         dialogBg = GameObject.Find("DialogBG").GetComponent<RectTransform>();
         dialogNameBg = GameObject.Find("DialogNameBG").GetComponent<Image>();
         crosshair = GameObject.Find("CrosshairImage").GetComponent<Image>();
+        cursor = GameObject.Find("Cursor").GetComponent<RectTransform>();
+
         pressEIndicator = GameObject.Find("PressEIndicator").GetComponent<Image>();
         pressEIndicator.color = Color.clear;
 
@@ -68,11 +81,17 @@ public class PlayerUIManager : MonoBehaviour
         menuCanvas = GameObject.Find("MenuCanvas").GetComponent<Canvas>();
         hudCanvas = GameObject.Find("HUDCanvas").GetComponent<Canvas>();
         menuCanvas.enabled = false;
+
+        EnableCrosshair();
     }
 
     // Update is called once per frame
     void Update()
     {
+        // Update our mana and health texts 
+        healthText.text = pc.combatSettings.health.ToString();
+        manaText.text = pc.combatSettings.mana.ToString();
+
         // Opens and closes options menu
         if (Input.GetKeyDown(KeyCode.Escape))
         {
@@ -106,6 +125,55 @@ public class PlayerUIManager : MonoBehaviour
             }
         }
 
+        // Opens sidebar / spell selection
+        if (Input.mouseScrollDelta.y != 0 && !Input.GetMouseButton(0))
+        {
+            sidebarOpenTime = 4;
+
+            if (!sidebarOpen)
+                sidebarOpen = true;
+
+            else
+            {
+                if (currentSidebarIndex == 0 && Input.mouseScrollDelta.y > 0)
+                {
+                    currentSidebarIndex = 4;
+                }
+                else if (currentSidebarIndex == 4 && Input.mouseScrollDelta.y < 0)
+                {
+                    currentSidebarIndex = 0;
+                }
+                else
+                {
+                    currentSidebarIndex -= Mathf.RoundToInt(Input.mouseScrollDelta.y);
+                }
+            }
+        }
+
+        // Close our sidebar after 4 seconds if we don't continue to scroll
+        if (sidebarOpen)
+        {
+            // Update cursor and spell slot positions
+            LerpSidebar(true);
+            LerpSidebarCursor(currentSidebarIndex);
+            LerpSpellSlots(currentSidebarIndex);
+            UpdateSpellName(currentSidebarIndex);
+            
+            
+
+            sidebarOpenTime -= Time.deltaTime;
+
+            if (sidebarOpenTime <= 0 || Input.GetMouseButton(0))
+            {
+                sidebarOpen = false;
+            }
+        }
+        else
+        {
+            LerpSidebar(false);
+            spellNameText.text = "";
+        }
+
         // Check to see if the player has moved far enough away from the NPC it has just interacted with - this is in order to reset the dialog box
         if (storedNpc != null && Vector3.Distance(pc.transform.position, storedNpc.transform.position) >= storedNpc.GetComponent<NPCAnimations>().minRotateDistance)
         {
@@ -113,12 +181,51 @@ public class PlayerUIManager : MonoBehaviour
         }
 
     }
+    void LerpSidebar(bool active)
+    {
+        if (active)
+        {
+            sidebar.anchoredPosition = Vector3.Lerp(sidebar.anchoredPosition, new Vector3(47.1f, sidebar.anchoredPosition.y), 0.5f);
+        }
+        else
+        {
+            sidebar.anchoredPosition = Vector3.Lerp(sidebar.anchoredPosition, new Vector3(-140, sidebar.anchoredPosition.y), 0.5f);
+        }
+    }
+    void LerpSidebarCursor(int index)
+    {
+        if (index < 5)
+            cursor.anchoredPosition = Vector3.Lerp(cursor.anchoredPosition, new Vector3(cursor.anchoredPosition.x, spellSlots[index].anchoredPosition.y), 0.5f);
+    }
+
+    void UpdateSpellName(int index)
+    {
+        if(index < 5)
+            spellNameText.text = spellNames[currentSidebarIndex];
+    }
+
+    void LerpSpellSlots(int index)
+    {
+        if (index < 5)
+        {
+            // For active spellslot, lerp it into view
+            spellSlots[index].anchoredPosition = Vector3.Lerp(spellSlots[index].anchoredPosition, new Vector3(cursor.anchoredPosition.x, spellSlots[index].anchoredPosition.y), 0.5f);
+
+            // For all inactive spellslots, lerp them into our sidebar, out of view
+            for (int i = 0; i <= 4; i++)
+            {
+                if (i != index)
+                    spellSlots[i].anchoredPosition = Vector3.Lerp(spellSlots[i].anchoredPosition, new Vector3(25, spellSlots[i].anchoredPosition.y), 0.5f);
+            }
+        }
+    }
+
     public void ResetDialogWindow()
     {
         StopAllCoroutines();
         dialogBg.anchoredPosition = new Vector2(267.8f, -192.1f);
         dialogBoxOpen = false;
-        
+
     }
     public void UpdateColor()
     {
@@ -173,7 +280,7 @@ public class PlayerUIManager : MonoBehaviour
         line2.text = "";
         line3.text = "";
 
-        if(npc.npcName == "")
+        if (npc.npcName == "")
         {
             dialogNameBg.color = Color.clear;
             lineName.text = "";
@@ -185,7 +292,7 @@ public class PlayerUIManager : MonoBehaviour
         }
 
         // Don't hide the dialog box it's already showing - used for when we have multiple lines in our line array
-        if(lineIndex == 0)
+        if (lineIndex == 0)
             dialogBg.anchoredPosition = new Vector2(267.8f, -192.1f);
 
         while (dialogBg.anchoredPosition.x >= -265f)
@@ -242,9 +349,14 @@ public class PlayerUIManager : MonoBehaviour
 
     IEnumerator WaitForKeyPress()
     {
-        while(!Input.GetKeyDown(KeyCode.E))
+        while (!Input.GetKeyDown(KeyCode.E))
         {
             yield return null;
         }
+    }
+
+    public void LeaveGame()
+    {
+        GameObject.Find("GameManager").GetComponent<GameManager>().LeaveRoom();
     }
 }
