@@ -33,7 +33,7 @@ c656dcc13ae391b68d594cc8f9c590b0 Assembly-CSharp.dll:Photon.Pun.Demo.Cockpit.Cur
 8ae3331b163cc121825eeed3975d6c4d Assembly-CSharp.dll:.ChatGui
 71bb6a6b6c8f052f948db64c7dd3ca4f Assembly-CSharp.dll:.PlayerNameInputField
 74c875e0f15c48e0a55f06093aa93e15 Assembly-CSharp.dll:Photon.Pun.Demo.Cockpit.LayoutElementMatchSize
-71bb6a6b6c8f052f948db64c7dd3ca4f Assembly-CSharp.dll:.PickupOwnershipControl
+ea328940c03dfb424cef0399262a8f12 Assembly-CSharp.dll:.PickupOwnershipControl
 e7a73f5f78ba6445195ec23b74a1ce2d Unity.TextMeshPro.dll:TMPro.TMP_ScrollbarEventHandler
 71bb6a6b6c8f052f948db64c7dd3ca4f Assembly-CSharp.dll:.HealthBubbleSpell
 bd4c580f02d31d4be48d7a47440392c4 Assembly-CSharp.dll:Photon.Pun.Demo.PunBasics.PlayerAnimatorManager
@@ -143,7 +143,7 @@ cba6cca6bb3290c4c00d709cf63843db Assembly-CSharp.dll:Photon.Pun.Demo.Cockpit.Sen
 9d65954b754eaf4accff343c2e40aec1 PhotonUnityNetworking.Utilities.dll:Photon.Pun.UtilityScripts.TabViewManager
 00274a21279f5cb831ce20f895049e38 Unity.TextMeshPro.dll:TMPro.TMP_SubMeshUI
 9c80efe996101ed2f2acdc43e1a95b5b Assembly-CSharp.dll:Photon.Pun.Demo.Asteroids.AsteroidsGameManager
-57c99c1f4fc2c2b46b9964cd1b8da9a9 Assembly-CSharp.dll:.StaffAnimate
+b179b3bac368e8242645e6f9ef9a66e9 Assembly-CSharp.dll:.StaffAnimate
 e6ae40841db498b6e673877ac45ad208 UnityEngine.Networking.dll:UnityEngine.Networking.NetworkAnimator
 71bb6a6b6c8f052f948db64c7dd3ca4f UnityEngine.Networking.dll:UnityEngine.Networking.NetworkBehaviour
 1dcb82730d983b77cec736c6ef19f814 UnityEngine.Networking.dll:UnityEngine.Networking.NetworkDiscovery
@@ -218,7 +218,7 @@ c380fc5ce39348202e0a58fe3e243a74 Assembly-CSharp.dll:Photon.Pun.Demo.PunBasics.L
 4fe8955e1c662935371b0936cafbb89b Assembly-CSharp.dll:Photon.Chat.UtilityScripts.TextButtonTransition
 4fe8955e1c662935371b0936cafbb89b PhotonUnityNetworking.Utilities.dll:Photon.Pun.UtilityScripts.TextButtonTransition
 e37675de1ea5e56da90f5600d33587bd Assembly-CSharp.dll:Photon.Pun.Demo.Cockpit.ToggleExpand
-f8599e95ff214413ce8f497ba878c29d Assembly-CSharp.dll:.PlayerUIManager
+08318bd242138e641a70adb36eebd14f Assembly-CSharp.dll:.PlayerUIManager
 cba6cca6bb3290c4c00d709cf63843db Assembly-CSharp.dll:Photon.Pun.Demo.Cockpit.NickNameField
 4d9f3379d9846c3f857ff61792c5ee3b Assembly-CSharp.dll:Photon.Pun.Demo.PunBasics.PlayerUI
 e6ae40841db498b6e673877ac45ad208 UnityEngine.Networking.dll:UnityEngine.Networking.NetworkAnimator

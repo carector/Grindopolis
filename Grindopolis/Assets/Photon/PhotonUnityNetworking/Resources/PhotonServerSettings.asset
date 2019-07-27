@@ -36,5 +36,9 @@ MonoBehaviour:
   - RpcSendHeldBool
   - RpcSetPickupState
   - UpdateOwnershipRPC
+  - RandomizeVortexPos
+  - DropObject
+  - RpcDropObject
+  - RpcUpdateOwnership
   DisableAutoOpenWizard: 1
   ShowSettings: 1

@@ -11,15 +11,20 @@ public class StaffAnimate : MonoBehaviourPunCallbacks, IPunObservable
         if (stream.IsWriting)
         {
             stream.SendNext(emissionState);
+            stream.SendNext(vortexEmissionState);
+            stream.SendNext(illuminationLight.intensity);
         }
         // Recieve data
         else
         {
             emissionState = (bool)stream.ReceiveNext();
+            vortexEmissionState = (bool)stream.ReceiveNext();
+            illuminationLight.intensity = (float)stream.ReceiveNext();
         }
     }
 
     public GameObject staffPosition;
+    public Light illuminationLight;
 
     PlayerControllerRigidbody pcr;
     PlayerLook pLook;
@@ -33,6 +38,8 @@ public class StaffAnimate : MonoBehaviourPunCallbacks, IPunObservable
     float staffZPos;
     bool paused;
     bool emissionState;
+    bool vortexEmissionState;
+    public ParticleSystem vortexPart;
 
     // Start is called before the first frame update
     void Start()
@@ -60,6 +67,15 @@ public class StaffAnimate : MonoBehaviourPunCallbacks, IPunObservable
             part.startColor = Color.Lerp(part.startColor, Color.clear, 0.4f);
         }
 
+        if (vortexEmissionState)
+        {
+            vortexPart.startColor = Color.Lerp(vortexPart.startColor, Color.white, 0.4f);
+        }
+        else
+        {
+            vortexPart.startColor = Color.Lerp(vortexPart.startColor, Color.clear, 0.4f);
+        }
+
         if (!photonView.IsMine)
             return;
 
@@ -72,15 +88,30 @@ public class StaffAnimate : MonoBehaviourPunCallbacks, IPunObservable
             staffZPos = 0.475f;
         }
 
-
         CalculateLookMovement();
 
         staffZPos = 0.35f;
+    }
+    public void Illuminate(bool state)
+    {
+        if(state==true)
+        {
+            illuminationLight.intensity = Mathf.Lerp(illuminationLight.intensity, 2.5f, 0.25f);
+        }
+        else
+        {
+            illuminationLight.intensity = Mathf.Lerp(illuminationLight.intensity, 0, 0.25f);
+        }
     }
     public void StaffEmissions(bool state)
     {
         emissionState = state;
     }
+    public void VortexEmissions(bool state)
+    {
+        vortexEmissionState = state;
+    }
+
     private void Update()
     {
         if (!photonView.IsMine)

@@ -28,6 +28,7 @@ public class PlayerUIManager : MonoBehaviour
     public Text healthText;
     public Text manaText;
     public Text hintText;
+    public Image sidebarBackground;
 
     bool sidebarOpen;
     public int currentSidebarIndex;
@@ -80,6 +81,7 @@ public class PlayerUIManager : MonoBehaviour
         drop.enabled = false;
         menuCanvas = GameObject.Find("MenuCanvas").GetComponent<Canvas>();
         hudCanvas = GameObject.Find("HUDCanvas").GetComponent<Canvas>();
+        sidebarBackground.color = Color.clear;
         menuCanvas.enabled = false;
 
         EnableCrosshair();
@@ -186,10 +188,12 @@ public class PlayerUIManager : MonoBehaviour
         if (active)
         {
             sidebar.anchoredPosition = Vector3.Lerp(sidebar.anchoredPosition, new Vector3(47.1f, sidebar.anchoredPosition.y), 0.5f);
+            sidebarBackground.color = Color.Lerp(sidebarBackground.color, new Color(0, 0, 0, 100 / 255f), 0.5f);
         }
         else
         {
             sidebar.anchoredPosition = Vector3.Lerp(sidebar.anchoredPosition, new Vector3(-140, sidebar.anchoredPosition.y), 0.5f);
+            sidebarBackground.color = Color.Lerp(sidebarBackground.color, Color.clear, 0.5f);
         }
     }
     void LerpSidebarCursor(int index)
