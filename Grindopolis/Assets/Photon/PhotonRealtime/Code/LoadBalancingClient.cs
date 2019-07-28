@@ -944,6 +944,37 @@ namespace Photon.Realtime
             this.LoadBalancingPeer.Disconnect();
         }
 
+        /// <summary>
+        /// Useful to test loss of connection which will end in a client timeout. This modifies LoadBalancingPeer.NetworkSimulationSettings. Read remarks.
+        /// </summary>
+        /// <remarks>
+        /// Use with care as this sets LoadBalancingPeer.IsSimulationEnabled.<br/>
+        /// Read LoadBalancingPeer.IsSimulationEnabled to check if this is on or off, if needed.<br/>
+        ///
+        /// If simulateTimeout is true, LoadBalancingPeer.NetworkSimulationSettings.IncomingLossPercentage and
+        /// LoadBalancingPeer.NetworkSimulationSettings.OutgoingLossPercentage will be set to 100.<br/>
+        /// Obviously, this overrides any network simulation settings done before.<br/>
+        ///
+        /// If you want fine-grained network simulation control, use the NetworkSimulationSettings.<br/>
+        ///
+        /// The timeout will lead to a call to <see cref="IConnectionCallbacks.OnDisconnected"/>, as usual in a client timeout.
+        ///
+        /// You could modify this method (or use NetworkSimulationSettings) to deliberately run into a server timeout by
+        /// just setting the OutgoingLossPercentage = 100 and the IncomingLossPercentage = 0.
+        /// </remarks>
+        /// <param name="simulateTimeout">If true, a connection loss is simulated. If false, the simulation ends.</param>
+        public void SimulateConnectionLoss(bool simulateTimeout)
+        {
+            this.DebugReturn(DebugLevel.WARNING, "SimulateConnectionLoss() set to: "+simulateTimeout);
+
+            if (simulateTimeout)
+            {
+                this.LoadBalancingPeer.NetworkSimulationSettings.IncomingLossPercentage = 100;
+                this.LoadBalancingPeer.NetworkSimulationSettings.OutgoingLossPercentage = 100;
+            }
+
+            this.LoadBalancingPeer.IsSimulationEnabled = simulateTimeout;
+        }
 
         private bool CallAuthenticate()
         {
@@ -1031,14 +1062,17 @@ namespace Photon.Realtime
         /// The list of usernames must be fetched from some other source (not provided by Photon).
         ///
         ///
-        /// Internal:
-        /// The server response includes 2 arrays of info (each index matching a friend from the request):
-        /// ParameterCode.FindFriendsResponseOnlineList = bool[] of online states
-        /// ParameterCode.FindFriendsResponseRoomIdList = string[] of room names (empty string if not in a room)
+        /// Internal:<br/>
+        /// The server response includes 2 arrays of info (each index matching a friend from the request):<br/>
+        /// ParameterCode.FindFriendsResponseOnlineList = bool[] of online states<br/>
+        /// ParameterCode.FindFriendsResponseRoomIdList = string[] of room names (empty string if not in a room)<br/>
+        /// <br/>
+        /// The options may be used to define which state a room must match to be returned.
         /// </remarks>
         /// <param name="friendsToFind">Array of friend's names (make sure they are unique).</param>
+        /// <param name="options">Options that affect the result of the FindFriends operation.</param>
         /// <returns>If the operation could be sent (requires connection).</returns>
-        public bool OpFindFriends(string[] friendsToFind)
+        public bool OpFindFriends(string[] friendsToFind, FindFriendsOptions options = null)
         {
             if (!this.CheckIfOpCanBeSent(OperationCode.FindFriends, this.Server, "FindFriends"))
             {
@@ -1103,7 +1137,7 @@ namespace Photon.Realtime
             }
 
             string[] filteredArray = friendsList.ToArray();
-            bool sent = this.LoadBalancingPeer.OpFindFriends(filteredArray);
+            bool sent = this.LoadBalancingPeer.OpFindFriends(filteredArray, options);
             this.friendListRequested = sent ? filteredArray : null;
 
             return sent;
@@ -3800,21 +3834,6 @@ namespace Photon.Realtime
             {
                 OnWebRpcResponseActions(response);
             }
-        }
-    }
-
-
-    public static class EventExt
-    {
-        [Obsolete("This extension is replaced by EventData.Sender, which can be configured via SenderKey.")]
-        public static int Sender(this EventData ev)
-        {
-            return ev.Sender;
-        }
-        [Obsolete("This extension is replaced by EventData.CustomData, which can be configured via CustomDataKey.")]
-        public static object CustomData(this EventData ev)
-        {
-            return ev.CustomData;
         }
     }
 }

@@ -174,11 +174,13 @@ e7aa62e1f291228958626e122c23c8f0 PhotonUnityNetworking.Utilities.dll:Photon.Pun.
 4a8ba6ed903730451f772f718f8624e3 Assembly-CSharp.dll:Photon.Pun.Demo.Cockpit.Forms.CreateRoomUiForm
 71bb6a6b6c8f052f948db64c7dd3ca4f Assembly-CSharp.dll:Photon.Pun.Demo.Cockpit.AutoSyncSceneToggle
 94017dcc9f00fe671ea7dc427b4da011 Unity.TextMeshPro.dll:TMPro.TMP_SpriteAsset
+71bb6a6b6c8f052f948db64c7dd3ca4f Assembly-CSharp.dll:Photon.Pun.Demo.Cockpit.CurrentRoomIsVisibleToggle
 f8f5c34557f4103b6547d8f956cec6ea Assembly-CSharp.dll:Photon.Pun.Demo.SlotRacer.PlayerControl
 c656dcc13ae391b68d594cc8f9c590b0 Assembly-CSharp.dll:Photon.Pun.Demo.Cockpit.BestRegionInPrefsProperty
 c656dcc13ae391b68d594cc8f9c590b0 Assembly-CSharp.dll:Photon.Pun.Demo.Cockpit.CurrentRoomPlayerTtlProperty
 7bd91b2b49cbbd3134f041d1faa18a79 Assembly-CSharp.dll:.PlayerController
 f941c3a384168571b7d90f58ec4986bc Assembly-CSharp.dll:Photon.Pun.Demo.Cockpit.InfosPanelPlaceholder
+71bb6a6b6c8f052f948db64c7dd3ca4f Assembly-CSharp.dll:Photon.Pun.Demo.Cockpit.CurrentRoomIsOpenToggle
 0b24359b178f2110b72f9b386ac3b17c Assembly-CSharp.dll:Com.MyCompany.MyGame.CameraWork
 b3ab2106268377ffe25dd18ac23dca28 Unity.TextMeshPro.dll:TMPro.TMP_Asset
 71bb6a6b6c8f052f948db64c7dd3ca4f Assembly-CSharp.dll:Photon.Chat.UtilityScripts.EventSystemSpawner
@@ -331,3 +333,4 @@ c8283c7732e3b6aa70d28f1fed4430ca PhotonUnityNetworking.Utilities.dll:Photon.Pun.
 f07d654754d37f82934d9057c671e9cc Assembly-CSharp.dll:Photon.Pun.Demo.Cockpit.Forms.UserIdUiForm
 c656dcc13ae391b68d594cc8f9c590b0 Assembly-CSharp.dll:Photon.Pun.Demo.Cockpit.CountOfRoomsProperty
 f0c4eb24258257daca58a9939f0894d2 Assembly-CSharp.dll:Photon.Pun.Demo.Asteroids.LobbyTopPanel
+a716d108856934d25a993e7a75bc28e0 Assembly-CSharp.dll:.AnnouncementsScript

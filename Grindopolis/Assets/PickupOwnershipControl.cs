@@ -17,10 +17,22 @@ public class PickupOwnershipControl : MonoBehaviourPunCallbacks, IPunObservable
         if (stream.IsWriting)
         {
             stream.SendNext(GetComponent<Rigidbody>().useGravity);
+
+            if(focusedTransform == null)
+            {
+                stream.SendNext(transform.position);
+                stream.SendNext(transform.rotation);
+            }
         }
         else
         {
             GetComponent<Rigidbody>().useGravity = (bool)stream.ReceiveNext();
+
+            if(focusedTransform == null)
+            {
+                transform.position = (Vector3)stream.ReceiveNext();
+                transform.rotation = (Quaternion)stream.ReceiveNext();
+            }
         }
     }
 
@@ -43,22 +55,22 @@ public class PickupOwnershipControl : MonoBehaviourPunCallbacks, IPunObservable
                 transform.parent = focusedTransform;
 
                 if(photonView.IsMine)
-                    rb.AddForce(-difference.normalized * 0.75f, ForceMode.VelocityChange);
+                    rb.AddForce(-difference.normalized * 0.8f, ForceMode.VelocityChange);
 
                 rb.angularVelocity = Vector3.zero;
 
 
-                transform.position = Vector3.Lerp(transform.position, focusedTransform.transform.position, 0.08f);
+                transform.position = Vector3.Lerp(transform.position, focusedTransform.transform.position, 0.09f);
             }
             else
             {
                 focusedTransform = null;
-                transform.parent = null;
             }
         }
         else
         {
             rb.useGravity = true;
+            transform.parent = null;
         }
     }
 

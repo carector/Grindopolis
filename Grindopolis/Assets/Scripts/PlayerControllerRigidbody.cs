@@ -95,13 +95,17 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
     public GameObject nameDisplayerPrefab;
     public GameObject heldObject;
     public Material[] playerColors;
-
+    public AudioSource loopedAudio;
     public Renderer bodyRenderer;
     public Transform heldObjectFocus;
-    public GameObject leftMouseProjectile;
+    public GameObject fireballProjectile;
+    public GameObject healthBubbleProjectile;
     public Transform projectilePosition;
     public Light staffLight;
     public Transform vortexPos;
+    public AudioClip pissSound;
+    public AudioClip levitateSound;
+    public ParticleSystem pissStream;
     // Private vars
     private GameObject storedPlatform;
 
@@ -181,6 +185,8 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
         string rand = vortexPos.name + Random.Range(0, 1000);
         photonView.RPC("RandomizeVortexPos", RpcTarget.All, rand);
 
+        AnnouncementsScript an = GameObject.Find("GameAnnouncementsAudio").GetComponent<AnnouncementsScript>();
+
         // Disable our camera if this is not our client player, as well as our audiolistener
         // if the player is the server, for whatever reason the camera won't disable due to the player not having authority
         // to bypass this, the server also checks to make sure there's at least one player connected before disabling the camera, in this case the server (i know this is fucking ASS but just roll with it)
@@ -215,6 +221,8 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
             staff = GetComponentInChildren<StaffAnimate>();
 
             cam.GetComponent<AudioSource>().spatialBlend = 0;
+            loopedAudio.spatialBlend = 0;
+            an.RpcWelcomeSound();
         }
 
         //StartCoroutine(OnStartCoroutine());
@@ -275,10 +283,9 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
             // Magic missile
             if (uiMan.currentSidebarIndex == 0)
             {
-
                 if (Input.GetMouseButtonDown(0))
                 {
-                    GameObject proj = PhotonNetwork.Instantiate(this.leftMouseProjectile.name, projectilePosition.position, projectilePosition.rotation);
+                    GameObject proj = PhotonNetwork.Instantiate(this.fireballProjectile.name, projectilePosition.position, projectilePosition.rotation);
                     proj.GetComponent<FireballScript>().playerRb = rb;
                 }
             }
@@ -299,48 +306,103 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
             // Levitate
             else if (uiMan.currentSidebarIndex == 2)
             {
+                if (heldObject != null && loopedAudio.clip != levitateSound)
+                {
+                    loopedAudio.clip = levitateSound;
+                    loopedAudio.Play();
+                }
+
                 vortexPos.transform.rotation = Quaternion.identity;
 
                 Vector3 explosionPos = vortexPos.position;
 
-                if (Input.GetMouseButton(0) && combatSettings.mana > 0)
-                {
-                    if (!isDeductingMana)
-                        //StartCoroutine(DeductMana(0.2f, 1));
 
-                        staff.StaffEmissions(true);
-                    staff.VortexEmissions(true);
+                if (heldObject != null && (Input.GetMouseButtonUp(0) || heldObject.GetComponent<PickupOwnershipControl>().focusedTransform == null))
+                {
+                    vortexPos.GetComponent<ParticleSystem>().startColor = Color.clear;
+
+                    staff.StaffEmissions(false);
+                    staff.VortexEmissions(false);
+
+                    heldObject.GetComponent<PhotonView>().RPC("RpcDropObject", RpcTarget.All, heldObject.transform.position, -rb.velocity);
+                    heldObject = null;
+
+                    isHoldingObject = false;
+                }
+                else if (Input.GetMouseButton(0) && combatSettings.mana > 0)
+                {
+                    //if (!isDeductingMana)
+                    //StartCoroutine(DeductMana(0.2f, 1));
+
+                    staff.StaffEmissions(true);
 
                     if (!isHoldingObject)
                     {
                         RaycastCheck();
                     }
-                }
-                else if (Input.GetMouseButtonUp(0) || combatSettings.mana == 0)
-                {
-                    vortexPos.GetComponent<ParticleSystem>().startColor = Color.clear;
-
-                    staff.StaffEmissions(false);
-
-                    if (heldObject != null)
+                    else
                     {
-                        heldObject.GetComponent<PhotonView>().RPC("RpcDropObject", RpcTarget.All, heldObject.transform.position, -rb.velocity);
+                        staff.VortexEmissions(true);
+                        loopedAudio.volume = Mathf.Lerp(loopedAudio.volume, 0.8f, 0.25f);
+                        loopedAudio.pitch = 1 + (Vector3.Distance(vortexPos.position, heldObject.transform.position) / 5f);
                     }
+                }
+                else if (Input.GetMouseButtonUp(0))
+                {
+                    staff.StaffEmissions(false);
+                }
 
-                    isHoldingObject = false;
+                if (!isHoldingObject)
+                {
+                    loopedAudio.volume = Mathf.Lerp(loopedAudio.volume, 0, 0.5f);
+
+                    if (loopedAudio.volume <= 0.1f)
+                    {
+                        loopedAudio.Stop();
+                        loopedAudio.volume = 0;
+                        loopedAudio.clip = null;
+                    }
                 }
             }
 
             // Health Bubble
             else if (uiMan.currentSidebarIndex == 3)
             {
-
+                if (Input.GetMouseButtonDown(0))
+                {
+                    GameObject proj = PhotonNetwork.Instantiate(this.healthBubbleProjectile.name, projectilePosition.position, projectilePosition.rotation);
+                }
             }
 
             // Piss
             else if (uiMan.currentSidebarIndex == 4)
             {
+                loopedAudio.pitch = 1;
 
+                if (Input.GetMouseButton(0))
+                {
+                    pissStream.Play();
+                    loopedAudio.volume = Mathf.Lerp(loopedAudio.volume, 0.8f, 0.25f);
+
+                    if (loopedAudio.clip != pissSound)
+                    {
+                        loopedAudio.clip = pissSound;
+                        loopedAudio.Play();
+                    }
+                }
+                else
+                {
+                    pissStream.Stop();
+
+                    loopedAudio.volume = Mathf.Lerp(loopedAudio.volume, 0, 0.5f);
+
+                    if (loopedAudio.volume <= 0.1f)
+                    {
+                        loopedAudio.Stop();
+                        loopedAudio.volume = 0;
+                        loopedAudio.clip = null;
+                    }
+                }
             }
 
 
@@ -376,40 +438,6 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
 
         // Constantly use raycast to check for grabbable objects and NPCs
         RaycastCheck();
-
-        // If we're holding an object, we can either drop it or throw it
-        /*if (isHoldingObject)
-        {
-            if (Input.GetKeyDown(KeyCode.R))
-            {
-                Debug.Log(storedVelocity);
-
-                heldObject.transform.parent = null;
-                heldObject.GetComponent<Rigidbody>().velocity = storedVelocity;
-                heldObject = null;
-
-                DropObject();
-                isHoldingObject = false;
-            }
-            else if (Input.GetKeyDown(KeyCode.F))
-            {
-                heldObject.transform.parent = null;
-                Rigidbody hrb = heldObject.GetComponent<Rigidbody>();
-
-                hrb.isKinematic = false;
-                hrb.velocity = storedVelocity * hrb.mass;
-                hrb.AddForce(cam.transform.TransformDirection(Vector3.forward * 500) * hrb.mass);
-
-                heldObject = null;
-
-                DropObject();
-                isHoldingObject = false;
-            }
-        }
-        */
-
-        // Update our previous position with our current position, since it will no longer be current next frame
-        previousPos = currentPos;
 
     }
 
@@ -590,7 +618,7 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
     void RaycastCheck()
     {
         RaycastHit hit;
-        Debug.DrawRay(cam.transform.position, cam.transform.TransformDirection(Vector3.forward * 2.5f), Color.red);
+        Debug.DrawRay(cam.transform.position, cam.transform.TransformDirection(Vector3.forward * 5), Color.red);
 
         // Automatically disable crosshair - if something is hit, it will override this
         //uiMan.DisableCrosshair();
@@ -598,23 +626,19 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
         if (!isHoldingObject)
             uiMan.DisplayHintText("");
 
-        if (Physics.Raycast(cam.transform.position, cam.transform.TransformDirection(Vector3.forward), out hit, 10))
+        if (Physics.Raycast(cam.transform.position, cam.transform.TransformDirection(Vector3.forward), out hit, 5f))
         {
-            if (uiMan.currentSidebarIndex == 2 && hit.transform != vortexPos && hit.collider.tag == "Pickup" && !isHoldingObject && Input.GetMouseButton(0))
+            if (heldObject == null && uiMan.currentSidebarIndex == 2 && hit.transform != vortexPos && hit.collider.tag == "Pickup" && Input.GetMouseButton(0))
             {
                 // Since we can't directly control the pickup physics from each client, we have the pickup itself
                 // control the physics and just update the transform it's focusing on
                 if (hit.collider.GetComponent<PickupOwnershipControl>().focusedTransform != vortexPos)
                 {
                     hit.collider.GetComponent<PhotonView>().RPC("RpcUpdateOwnership", RpcTarget.All, photonView.ViewID, vortexPos.name);
+
+                    heldObject = hit.collider.gameObject;
+                    isHoldingObject = true;
                 }
-
-                previousPos = currentPos;
-                currentPos = hit.transform.position;
-                storedVelocity = previousPos - currentPos;
-
-                heldObject = hit.collider.gameObject;
-                isHoldingObject = true;
             }
 
             else if (hit.collider.tag == "NPC" && !uiMan.dialogBoxOpen)

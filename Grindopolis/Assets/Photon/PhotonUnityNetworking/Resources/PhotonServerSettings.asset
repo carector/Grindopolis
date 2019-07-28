@@ -40,5 +40,8 @@ MonoBehaviour:
   - DropObject
   - RpcDropObject
   - RpcUpdateOwnership
+  - RpcPlayerJoinedSound
+  - RpcPlayWelcomeSound
+  - RpcWelcomeSound
   DisableAutoOpenWizard: 1
   ShowSettings: 1

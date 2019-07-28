@@ -61,6 +61,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\AnnouncementsScript.cs" />
+    <Compile Include="Assets\HeadColliderPositioner.cs" />
+    <Compile Include="Assets\HealthBubbleActual.cs" />
     <Compile Include="Assets\LevitationResetter.cs" />
     <Compile Include="Assets\LoadingTextBackgroundFollow.cs" />
     <Compile Include="Assets\Photon\PhotonChat\Demos\Common\EventSystemSpawner.cs" />
@@ -119,6 +122,8 @@
     <Compile Include="Assets\Photon\PhotonUnityNetworking\Demos\PunCockpit\Scripts\Autonomous UI\AutoSyncSceneToggle.cs" />
     <Compile Include="Assets\Photon\PhotonUnityNetworking\Demos\PunCockpit\Scripts\Autonomous UI\BackgroundTimeOutField.cs" />
     <Compile Include="Assets\Photon\PhotonUnityNetworking\Demos\PunCockpit\Scripts\Autonomous UI\CrcCheckToggle.cs" />
+    <Compile Include="Assets\Photon\PhotonUnityNetworking\Demos\PunCockpit\Scripts\Autonomous UI\CurrentRoom\CurrentRoomIsOpenToggle.cs" />
+    <Compile Include="Assets\Photon\PhotonUnityNetworking\Demos\PunCockpit\Scripts\Autonomous UI\CurrentRoom\CurrentRoomIsVisibleToggle.cs" />
     <Compile Include="Assets\Photon\PhotonUnityNetworking\Demos\PunCockpit\Scripts\Autonomous UI\DocLinkButton.cs" />
     <Compile Include="Assets\Photon\PhotonUnityNetworking\Demos\PunCockpit\Scripts\Autonomous UI\GameVersionField.cs" />
     <Compile Include="Assets\Photon\PhotonUnityNetworking\Demos\PunCockpit\Scripts\Autonomous UI\Generic\BoolInputField.cs" />
@@ -178,6 +183,8 @@
     <Compile Include="Assets\PhotonTest\PlayerManager.cs" />
     <Compile Include="Assets\PhotonTest\PlayerNameInputField.cs" />
     <Compile Include="Assets\PickupOwnershipControl.cs" />
+    <Compile Include="Assets\PissControl.cs" />
+    <Compile Include="Assets\ReverseNormals.cs" />
     <Compile Include="Assets\Scripts\Buoyancy.cs" />
     <Compile Include="Assets\Scripts\DisplayNewLines.cs" />
     <Compile Include="Assets\Scripts\FireballScript.cs" />
@@ -213,6 +220,7 @@
     <None Include="Assets\Photon\PhotonLibs\release_history.txt" />
     <None Include="Assets\Textures\Skies\mp_gatekeeper\mp_gatekeeper.shader" />
     <None Include="Assets\Textures\Skies\hw_canyon\license.txt" />
+    <None Include="Assets\Photon\PhotonLibs\changes-library.txt" />
     <None Include="Assets\Fonts\OpenSans\FontLicense.txt" />
     <None Include="Assets\Photon\PhotonUnityNetworking\Demos\Shared Assets\Skin\eurof_tt.txt" />
     <None Include="Assets\Textures\Skies\mp_gatekeeper\license.txt" />
@@ -221,6 +229,7 @@
     <None Include="Assets\Photon\PhotonUnityNetworking\readme.txt" />
     <None Include="Assets\SeansWater\Shaders\SeansWater_Deferred.shader" />
     <None Include="Assets\Textures\Skies\hw_canyon\hw_canyon.shader" />
+    <None Include="Assets\Grindopolis Story.txt" />
     <None Include="Assets\SeansWater\Shaders\SeansWater.shader" />
     <None Include="Assets\Photon\PhotonUnityNetworking\changelog.txt" />
     <None Include="Assets\Textures\Skies\hw_crater\hw_crater.shader" />

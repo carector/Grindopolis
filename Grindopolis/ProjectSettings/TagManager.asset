@@ -10,6 +10,7 @@ TagManager:
   - Ceiling
   - Water
   - WallCollider
+  - Terrain
   layers:
   - Default
   - TransparentFX

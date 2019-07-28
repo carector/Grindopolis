@@ -1,6 +1,20 @@
 PUN 2 Change Log
 
 
+v2.13 (25. June 2019)
+Fixed: Typos and null checks in PhotonNetwork class.
+Fixed: SerializationProtocol selection for WebGL.
+Fixed: Missing IWebRpcCallback interface reference added to MonoBehaviourPunCallbacks.
+Added: PhotonNetwork.AllocateViewID(bool sceneObject), which can be used to just get a viewID that is then assigned manually.
+Updated: Improved wording for warning on missing photonViews during serialization.
+Changed: The library now has a changes-realtime.txt file instead of a release_history.txt. The plan is to separate library and Realtime API updates from those of PUN and other packages. Also check out changes-realtime.txt and changes-library.txt.
+Updated: PUN Cockpit. It will now rejoin instead of join if needed.
+Updated: To new library version 4.1.2.16.
+    This fixes an issue with a ThreadAbortException thrown on Android (with specific Unity build settings) and improves connection stability in cases where the ping goes up temporarily.
+Chat
+    Added: ChatClient.TryGetPrivateChannelByUser.
+
+
 v2.12 (6. May 2019)
 Fixed: Breaking change of EventData. The properties Sender and CustomData are back and they keys (in the event Parameters) can now be configured at runtime (if needed).
 Updated: To new library version 4.1.2.14 (6. May 2019 - rev5088).
@@ -10,7 +24,7 @@ Fixed: EventData usage. PUN v2.10 had a bug in Ownership Transfer calls and some
 Fixed: ClientState.ConnectedToMasterserver did not have the same value as ConnectedToMasterServer (and no longer got used at all). This affects only rare cases where the enum is directly used (PUN was updated).
 Changed: Account registration scripts to use Unity's built-in JSON parsing. Now, PUN no longer incldues the NewtonSoft Json dll (which should avoid the occasional clash of dlls).
 Updated: To new library version 4.1.2.13 (3. May 2019 - rev5086).
-    Changed: EventData was changed in the Photon3Unity3d.dll again. Now it does not have a Sender or CustomData property anymore as those were not workign for Chat (and misleading). Instead, those are fetched from the Parameters of an event (each API provides accessor extensions). 
+    Changed: EventData was changed in the Photon3Unity3d.dll again. Now it does not have a Sender or CustomData property anymore as those were not workign for Chat (and misleading). Instead, those are fetched from the Parameters of an event (each API provides accessor extensions).
     Added: PhotonPeer.ReuseEventInstance as option to use a single EventData instance for all incoming events. This reduces memory garbage. The drawback is: An event provided via OnEvent(EventData photonEvent) is invalidated right after the callback finished. That event's content will get modified. Typically this is not a problem as events are rarely cached.
 Chat
     Fixed: Properly add local client's UserId to public channels' Subscribers list when applicable.
@@ -67,7 +81,7 @@ Photon Chat:
     Added: Client API for Max Subscribers and Publish Subscribers features inside public channels.
 
 v2.6 (25th January 2019)
-Fixed: Offline custom properties are now set even if ExpectedProperties is set, as there is only one source for setting properties when in offline mode. 
+Fixed: Offline custom properties are now set even if ExpectedProperties is set, as there is only one source for setting properties when in offline mode.
 Fixed: Switching Offline mode off now properly cleans up room content.
 Fixed: Infinite for-loop when enabling all Interest Groups by using new byte[0] as parameter for the SetInterestGroups function.
 Fixed: The PhotonView attribute AddComponentMenu could not have a shortcut (in 2018.3) for unknown reasons. It was causing compile errors in some cases, so the shortcut (&v) is gone.

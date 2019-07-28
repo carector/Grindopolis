@@ -64,7 +64,7 @@ namespace Photon.Pun
     public static partial class PhotonNetwork
     {
         /// <summary>Version number of PUN. Used in the AppVersion, which separates your playerbase in matchmaking.</summary>
-        public const string PunVersion = "2.12";
+        public const string PunVersion = "2.13";
 
         /// <summary>Version number of your game. Setting this updates the AppVersion, which separates your playerbase in matchmaking.</summary>
         /// <remarks>
@@ -126,6 +126,9 @@ namespace Photon.Pun
         private const string PlayerPrefsKey = "PUNCloudBestRegion";
 
         /// <summary>Used to store and access the "Best Region Summary" in the Player Preferences.</summary>
+        /// <remarks>
+        /// Set this value to null before you connect, to discard the previously selected Best Region for the client.
+        /// </remarks>
         public static string BestRegionSummaryInPreferences
         {
             get
@@ -543,7 +546,7 @@ namespace Photon.Pun
             }
         }
 
-        private static int sendFrequency = 50; // in miliseconds.
+        private static int sendFrequency = 50; // in milliseconds.
 
         /// <summary>
         /// Defines how many times per second OnPhotonSerialize should be called on PhotonViews.
@@ -575,10 +578,10 @@ namespace Photon.Pun
             }
         }
 
-        private static int serializationFrequency = 100; // in miliseconds. I.e. 100 = 100ms which makes 10 times/second
+        private static int serializationFrequency = 100; // in milliseconds. I.e. 100 = 100ms which makes 10 times/second
 
         /// <summary>
-        /// Can be used to pause dispatching of incoming evtents (RPCs, Instantiates and anything else incoming).
+        /// Can be used to pause dispatching of incoming events (RPCs, Instantiates and anything else incoming).
         /// </summary>
         /// <remarks>
         /// While IsMessageQueueRunning == false, the OnPhotonSerializeView calls are not done and nothing is sent by
@@ -2194,7 +2197,7 @@ namespace Photon.Pun
         /// <summary>
         /// Allocates a viewID for the current/local player.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>True if a viewId was assigned. False if the PhotonView already had a non-zero viewID.</returns>
         public static bool AllocateViewID(PhotonView view)
         {
             if (view.ViewID != 0)
@@ -2208,11 +2211,10 @@ namespace Photon.Pun
             return true;
         }
 
-
         /// <summary>
-        /// Enables the Master Client to allocate a viewID that is valid for scene objects.
+        /// Enables the Master Client to allocate a viewID for scene objects.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>True if a viewId was assigned. False if the PhotonView already had a non-zero viewID or if this client is not the Master Client.</returns>
         public static bool AllocateSceneViewID(PhotonView view)
         {
             if (!PhotonNetwork.IsMasterClient)
@@ -2232,9 +2234,25 @@ namespace Photon.Pun
             return true;
         }
 
-        // use 0 for scene-targetPhotonView-ids
-        // returns viewID (combined owner and sub id)
-        private static int AllocateViewID(int ownerId)
+        /// <summary>Allocates a viewID for the current/local player or the scene.</summary>
+        /// <param name="sceneObject">Use true, to allocate a scene viewID and false to allocate a viewID for the local player.</param>
+        /// <returns>Returns a viewID (combined owner and sequential number) that can be assigend as PhotonView.ViewID.</returns>
+        public static int AllocateViewID(bool sceneObject)
+        {
+            if (sceneObject && !LocalPlayer.IsMasterClient)
+            {
+                Debug.LogError("Only a Master Client can AllocateViewID() for scene objects. This client/player is not a Master Client. Returning an invalid viewID: -1.");
+                return 0;
+            }
+
+            int ownerActorNumber = sceneObject ? 0 : LocalPlayer.ActorNumber;
+            return AllocateViewID(ownerActorNumber);
+        }
+
+        /// <summary>Allocates a viewID for the current/local player or the scene.</summary>
+        /// <param name="ownerId">ActorNumber to allocate a viewID for.</param>
+        /// <returns>Returns a viewID (combined owner and sequential number) that can be assigend as PhotonView.ViewID.</returns>
+        public static int AllocateViewID(int ownerId)
         {
             if (ownerId == 0)
             {
@@ -2597,7 +2615,7 @@ namespace Photon.Pun
         /// <returns>Nothing. Check error debug log for any issues.</returns>
         public static void DestroyPlayerObjects(Player targetPlayer)
         {
-            if (LocalPlayer == null)
+            if (targetPlayer == null)
             {
                 Debug.LogError("DestroyPlayerObjects() failed, cause parameter 'targetPlayer' was null.");
             }

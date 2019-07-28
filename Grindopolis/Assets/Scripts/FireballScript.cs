@@ -24,19 +24,7 @@ public class FireballScript : MonoBehaviourPunCallbacks
     {
         if (explode)
         {
-            /*
-            this.GetComponent<Rigidbody>().isKinematic = true;
-            Vector3 explosionPos = transform.position;
-
-            Collider[] colliders = Physics.OverlapSphere(explosionPos, explosionRadius);
-            foreach (Collider hit in colliders)
-            {
-                Rigidbody rb = hit.GetComponent<Rigidbody>();
-
-                if (rb != null && rb != this.GetComponent<Rigidbody>() && rb != playerRb)
-                    rb.AddExplosionForce(explosionPower, explosionPos, explosionRadius, 1f);
-            }
-            */
+            
             StartCoroutine(Countdown());
         }
 
@@ -51,7 +39,7 @@ public class FireballScript : MonoBehaviourPunCallbacks
 
     IEnumerator Countdown()
     {
-        yield return new WaitForSeconds(0.35f);
+        yield return new WaitForSeconds(1);
 
         if(photonView.IsMine)
             PhotonNetwork.Destroy(this.gameObject);

@@ -1,0 +1,33 @@
+Grindopolis events:
+
+Forest town
+Enter cowboy town
+	Talk to chief
+	Gives you directions
+
+Enter shitville
+Complete tunnel maze
+
+Enter city
+	Mayor will build better treatment plant if you can talk to static prof
+	Fears of static takeover are huge in the city
+	Opens front gate for you
+
+Static temple
+	Static professor is helpless
+	Big Oogie says bring him a burger
+
+Return to city for burger
+	Cashier is terrified of the implications of a monster burger
+	Only chef who can make something like that is retired, lives in the old downtown area
+	
+Downtown area
+	Locate chef in seedy club
+	Says he used to be a delivery boy too, if you can reach an area in a certain amount of time he'll make the burger
+	
+Static temple
+	Return to Oogie with the burger
+	Gains power, breaks out of his holding cell
+	Marches towards city
+	Get on top of main wall and start casting spells at him
+	Eventually bring him down
