@@ -580,6 +580,7 @@ MonoBehaviour:
     doubleJumping: 0
     playerName: 
     playerMatIndex: 0
+    isPissing: 0
   HUDPrefab: {fileID: 43, guid: 123991bc80a808d4aab024acd3984185, type: 3}
   nameDisplayerPrefab: {fileID: 97579393885074928, guid: 06fa1da11e25f4b41bfbfdd3f5c7aa62,
     type: 3}
@@ -599,9 +600,8 @@ MonoBehaviour:
   loopedAudio: {fileID: 3685705722248412883}
   bodyRenderer: {fileID: 527}
   heldObjectFocus: {fileID: 373}
-  fireballProjectile: {fileID: 163, guid: 29cae83dd3d483a46815202c4a5fbb2b, type: 3}
-  healthBubbleProjectile: {fileID: 7634130261029574201, guid: 8d82e39d72ce30044969dd6260fabe7c,
-    type: 3}
+  fireballProjectile: {fileID: 169, guid: 29cae83dd3d483a46815202c4a5fbb2b, type: 3}
+  healthBubbleProjectile: {fileID: 369, guid: 8d82e39d72ce30044969dd6260fabe7c, type: 3}
   projectilePosition: {fileID: 521}
   staffLight: {fileID: 666}
   vortexPos: {fileID: 381}
@@ -5771,7 +5771,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
   m_PlayOnAwake: 1
-  m_Volume: 0.8
+  m_Volume: 0
   m_Pitch: 1
   Loop: 1
   Mute: 0
@@ -5780,9 +5780,9 @@ AudioSource:
   Priority: 128
   DopplerLevel: 1
   MinDistance: 1
-  MaxDistance: 500
+  MaxDistance: 50
   Pan2D: 0
-  rolloffMode: 0
+  rolloffMode: 2
   BypassEffects: 0
   BypassListenerEffects: 0
   BypassReverbZones: 0
@@ -5790,23 +5790,32 @@ AudioSource:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
-      time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0
+      time: 0.02
+      value: 0.9568634
+      inSlope: -0.9958982
+      outSlope: -0.9958982
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0.6091419
+    - serializedVersion: 3
+      time: 0.4954536
+      value: 0.22352314
+      inSlope: -0.83643264
+      outSlope: -0.83643264
       tangentMode: 0
       weightedMode: 0
       inWeight: 0.33333334
-      outWeight: 0.33333334
+      outWeight: 0.059688378
     - serializedVersion: 3
       time: 1
       value: 0
-      inSlope: 0
-      outSlope: 0
+      inSlope: 0.092688635
+      outSlope: 0.092688635
       tangentMode: 0
       weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
+      inWeight: 0.5698771
+      outWeight: 0
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
@@ -5898,7 +5907,7 @@ ParticleSystem:
   lengthInSec: 5
   simulationSpeed: 1
   stopAction: 0
-  cullingMode: 3
+  cullingMode: 0
   ringBufferMode: 0
   ringBufferLoopRange: {x: 0, y: 1}
   looping: 1

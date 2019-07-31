@@ -20,6 +20,7 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
             stream.SendNext(mVar.playerName);
             stream.SendNext(mVar.playerMatIndex);
             stream.SendNext(vortexPos.GetComponent<ParticleSystem>().startColor.a);
+            stream.SendNext(mVar.isPissing);
         }
         // Recieve data
         else
@@ -28,6 +29,7 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
             mVar.playerName = (string)stream.ReceiveNext();
             mVar.playerMatIndex = (int)stream.ReceiveNext();
             vortexPos.GetComponent<ParticleSystem>().startColor = new Color(255, 255, 255, (float)stream.ReceiveNext());
+            mVar.isPissing = (bool)stream.ReceiveNext();
         }
     }
 
@@ -83,6 +85,7 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
         public bool doubleJumping;
         public string playerName;
         public int playerMatIndex;
+        public bool isPissing;
     }
 
     public static GameObject LocalPlayerInstance;
@@ -381,27 +384,12 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
 
                 if (Input.GetMouseButton(0))
                 {
-                    pissStream.Play();
-                    loopedAudio.volume = Mathf.Lerp(loopedAudio.volume, 0.8f, 0.25f);
-
-                    if (loopedAudio.clip != pissSound)
-                    {
-                        loopedAudio.clip = pissSound;
-                        loopedAudio.Play();
-                    }
+                    mVar.isPissing = true;
+                    
                 }
                 else
                 {
-                    pissStream.Stop();
-
-                    loopedAudio.volume = Mathf.Lerp(loopedAudio.volume, 0, 0.5f);
-
-                    if (loopedAudio.volume <= 0.1f)
-                    {
-                        loopedAudio.Stop();
-                        loopedAudio.volume = 0;
-                        loopedAudio.clip = null;
-                    }
+                    mVar.isPissing = false;
                 }
             }
 
@@ -452,6 +440,33 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
         {
             bodyRenderer.material = playerColors[mVar.playerMatIndex];
             storedColor = mVar.playerMatIndex;
+        }
+
+        // Enable piss.
+        if(mVar.isPissing)
+        {
+            pissStream.Play();
+            loopedAudio.volume = Mathf.Lerp(loopedAudio.volume, 0.8f, 0.25f);
+
+            if (loopedAudio.clip != pissSound)
+            {
+                loopedAudio.clip = pissSound;
+                loopedAudio.Play();
+            }
+        }
+        else
+        {
+            mVar.isPissing = false;
+            pissStream.Stop();
+
+            loopedAudio.volume = Mathf.Lerp(loopedAudio.volume, 0, 0.5f);
+
+            if (loopedAudio.volume <= 0.1f)
+            {
+                loopedAudio.Stop();
+                loopedAudio.volume = 0;
+                loopedAudio.clip = null;
+            }
         }
 
         // Play footstep sounds

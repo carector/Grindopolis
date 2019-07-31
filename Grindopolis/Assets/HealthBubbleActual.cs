@@ -26,6 +26,7 @@ public class HealthBubbleActual : MonoBehaviourPunCallbacks, IPunObservable
     void Start()
     {
         audio = GetComponent<AudioSource>();
+        StartCoroutine(RestoreHealth());
     }
 
     // Update is called once per frame
@@ -43,6 +44,7 @@ public class HealthBubbleActual : MonoBehaviourPunCallbacks, IPunObservable
 
             if (audio.volume <= 0.1f)
             {
+                StopAllCoroutines();
                 PhotonNetwork.Destroy(this.gameObject);
             }
         }
@@ -50,5 +52,22 @@ public class HealthBubbleActual : MonoBehaviourPunCallbacks, IPunObservable
         {
             audio.volume = Mathf.Lerp(audio.volume, 1, 0.25f);
         }
+    }
+
+    IEnumerator RestoreHealth()
+    {
+        yield return new WaitForSeconds(0.35f);
+
+        Collider[] col = Physics.OverlapSphere(transform.position, 4.5f);
+
+        foreach(Collider c in col)
+        {
+            if(c.gameObject.tag == "Player" && c.GetComponent<PhotonView>().IsMine)
+            {
+                c.GetComponent<PlayerControllerRigidbody>().combatSettings.health += 2;
+            }
+        }
+
+        StartCoroutine(RestoreHealth());
     }
 }
