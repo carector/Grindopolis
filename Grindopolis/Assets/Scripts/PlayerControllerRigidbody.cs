@@ -311,7 +311,7 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
             {
                 if (heldObject != null && loopedAudio.clip != levitateSound)
                 {
-                    loopedAudio.clip = levitateSound;
+                    //loopedAudio.clip = levitateSound;
                     loopedAudio.Play();
                 }
 

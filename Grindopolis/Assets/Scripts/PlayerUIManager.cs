@@ -346,6 +346,15 @@ public class PlayerUIManager : MonoBehaviour
                 yield return null;
             }
 
+            // Update all lines referenced in our NPC
+            if (npc.updateLinesWhenDone)
+            {
+                foreach (DisplayNewLines l in npc.linesToUpdate)
+                {
+                    l.UpdateLines();
+                }
+            }
+
             dialogBg.anchoredPosition = new Vector2(267.8f, -192.1f);
             dialogBoxOpen = false;
         }

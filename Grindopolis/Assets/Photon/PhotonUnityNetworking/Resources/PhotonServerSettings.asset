@@ -25,23 +25,17 @@ MonoBehaviour:
     EnableLobbyStatistics: 0
     NetworkLogging: 1
   StartInOfflineMode: 0
-  PunLogging: 2
+  PunLogging: 0
   EnableSupportLogger: 0
   RunInBackground: 1
   RpcList:
   - DestroySpaceship
   - Fire
-  - RespawnSpaceship
   - PlayJumpSound
-  - RpcSendHeldBool
-  - RpcSetPickupState
-  - UpdateOwnershipRPC
   - RandomizeVortexPos
-  - DropObject
+  - RespawnSpaceship
   - RpcDropObject
+  - RpcSetPickupState
   - RpcUpdateOwnership
-  - RpcPlayerJoinedSound
-  - RpcPlayWelcomeSound
-  - RpcWelcomeSound
   DisableAutoOpenWizard: 1
-  ShowSettings: 1
+  ShowSettings: 0

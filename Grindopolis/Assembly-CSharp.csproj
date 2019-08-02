@@ -217,7 +217,6 @@
     <None Include="Assets\Textures\Skies\ame_siege\ame_siege.shader" />
     <None Include="Assets\Textures\Skies\hw_blue\license.txt" />
     <None Include="Assets\Photon\PhotonLibs\Photon3Unity3D.xml" />
-    <None Include="Assets\Photon\PhotonLibs\release_history.txt" />
     <None Include="Assets\Textures\Skies\mp_gatekeeper\mp_gatekeeper.shader" />
     <None Include="Assets\Textures\Skies\hw_canyon\license.txt" />
     <None Include="Assets\Photon\PhotonLibs\changes-library.txt" />
