@@ -81,6 +81,7 @@ public class PlayerUIManager : MonoBehaviour
         drop.enabled = false;
         menuCanvas = GameObject.Find("MenuCanvas").GetComponent<Canvas>();
         hudCanvas = GameObject.Find("HUDCanvas").GetComponent<Canvas>();
+
         sidebarBackground.color = Color.clear;
         menuCanvas.enabled = false;
 

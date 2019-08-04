@@ -56,7 +56,7 @@ public class HealthBubbleActual : MonoBehaviourPunCallbacks, IPunObservable
 
     IEnumerator RestoreHealth()
     {
-        yield return new WaitForSeconds(0.35f);
+        yield return new WaitForSeconds(0.35f/2f);
 
         Collider[] col = Physics.OverlapSphere(transform.position, 4.5f);
 
@@ -64,7 +64,14 @@ public class HealthBubbleActual : MonoBehaviourPunCallbacks, IPunObservable
         {
             if(c.gameObject.tag == "Player" && c.GetComponent<PhotonView>().IsMine)
             {
-                c.GetComponent<PlayerControllerRigidbody>().combatSettings.health += 2;
+                if (c.GetComponent<PlayerControllerRigidbody>().combatSettings.health + 2 > 100)
+                {
+                    c.GetComponent<PlayerControllerRigidbody>().combatSettings.health = 100;
+                }
+                else
+                {
+                    c.GetComponent<PlayerControllerRigidbody>().combatSettings.health += 2;
+                }
             }
         }
 

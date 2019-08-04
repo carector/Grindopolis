@@ -109,6 +109,8 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
     public AudioClip pissSound;
     public AudioClip levitateSound;
     public ParticleSystem pissStream;
+    public GameObject hitMarker;
+    public Transform hitMarkerPosition;
     // Private vars
     private GameObject storedPlatform;
 
@@ -327,7 +329,7 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
                     staff.StaffEmissions(false);
                     staff.VortexEmissions(false);
 
-                    heldObject.GetComponent<PhotonView>().RPC("RpcDropObject", RpcTarget.All, heldObject.transform.position, -rb.velocity);
+                    heldObject.GetComponent<PhotonView>().RPC("RpcDropObject", RpcTarget.All, heldObject.transform.position, -transform.forward*25);
                     heldObject = null;
 
                     isHoldingObject = false;
@@ -675,7 +677,10 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
             }*/
         }
     }
-
+    public void ReceiveDamage(int damage)
+    {
+        combatSettings.health -= damage;
+    }
     void PickupObject()
     {
         Debug.Log("Picked up object");

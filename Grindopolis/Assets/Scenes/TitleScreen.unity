@@ -1288,6 +1288,7 @@ GameObject:
   - component: {fileID: 905256312}
   - component: {fileID: 905256314}
   - component: {fileID: 905256313}
+  - component: {fileID: 905256315}
   m_Layer: 5
   m_Name: Title
   m_TagString: Untagged
@@ -1356,6 +1357,26 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 905256311}
   m_CullTransparentMesh: 0
+--- !u!114 &905256315
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 905256311}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5814302b25898174a8fb75968250e1e1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_EffectColor: {r: 0, g: 0, b: 0, a: 0.5}
+  m_EffectDistance: {x: 1, y: -1}
+  m_UseGraphicAlpha: 1
+  m_size: 10.94
+  glintEffect: 0
+  glintVertex: 0
+  glintWidth: 0
+  glintColor: {r: 0, g: 0, b: 0, a: 0}
 --- !u!1 &1139832885
 GameObject:
   m_ObjectHideFlags: 0
@@ -1496,6 +1517,7 @@ GameObject:
   - component: {fileID: 1500121485}
   - component: {fileID: 1500121487}
   - component: {fileID: 1500121486}
+  - component: {fileID: 1500121488}
   m_Layer: 5
   m_Name: LoadingText
   m_TagString: Untagged
@@ -1564,6 +1586,26 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1500121484}
   m_CullTransparentMesh: 0
+--- !u!114 &1500121488
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1500121484}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5814302b25898174a8fb75968250e1e1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_EffectColor: {r: 0, g: 0, b: 0, a: 1}
+  m_EffectDistance: {x: 1, y: -1}
+  m_UseGraphicAlpha: 0
+  m_size: 15
+  glintEffect: 0
+  glintVertex: 0
+  glintWidth: 0
+  glintColor: {r: 0, g: 0, b: 0, a: 0}
 --- !u!1 &1559779370
 GameObject:
   m_ObjectHideFlags: 0

@@ -208,6 +208,7 @@ Transform:
   - {fileID: 381}
   - {fileID: 521}
   - {fileID: 520}
+  - {fileID: 6469387153936744725}
   m_Father: {fileID: 374}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -608,6 +609,9 @@ MonoBehaviour:
   pissSound: {fileID: 8300000, guid: 9794b80f23c601a429c8b2b58a6cc3de, type: 3}
   levitateSound: {fileID: 8300000, guid: c97d6d2727797b24fae3ef619e49ab51, type: 3}
   pissStream: {fileID: 6813610160805011038}
+  hitMarker: {fileID: 7522445674175530727, guid: 38027d11375750b4993d82e2ebb995a1,
+    type: 3}
+  hitMarkerPosition: {fileID: 6469387153936744725}
   groundCheckOffset: 1.01
 --- !u!136 &673
 CapsuleCollider:
@@ -10562,6 +10566,36 @@ ParticleSystemRenderer:
   m_Mesh2: {fileID: 0}
   m_Mesh3: {fileID: 0}
   m_MaskInteraction: 0
+--- !u!1 &3815494981427415533
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6469387153936744725}
+  m_Layer: 0
+  m_Name: HitNumberSpawnPosition
+  m_TagString: Untagged
+  m_Icon: {fileID: 2974397684917235467, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6469387153936744725
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3815494981427415533}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -1.3280001, y: -0.337, z: 4.176}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 377}
+  m_RootOrder: 5
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &816
 MonoBehaviour:
   m_ObjectHideFlags: 0

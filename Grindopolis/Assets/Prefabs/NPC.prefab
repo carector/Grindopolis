@@ -235,10 +235,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0e39ef98807398e42b50e88ce2402d5d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  name: NPC
-  line1: This is usually
-  line2: where some dialog
-  line3: would go.
+  npcName: 
+  revertToOriginalLines: 1
+  updateLinesWhenDone: 0
+  lines: []
+  linesToUpdate: []
 --- !u!1 &3242571837594178424
 GameObject:
   m_ObjectHideFlags: 0

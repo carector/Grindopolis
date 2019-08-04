@@ -62,10 +62,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\AnnouncementsScript.cs" />
+    <Compile Include="Assets\EnemyControl.cs" />
     <Compile Include="Assets\HeadColliderPositioner.cs" />
     <Compile Include="Assets\HealthBubbleActual.cs" />
     <Compile Include="Assets\LevitationResetter.cs" />
     <Compile Include="Assets\LoadingTextBackgroundFollow.cs" />
+    <Compile Include="Assets\OpenGate.cs" />
     <Compile Include="Assets\Photon\PhotonChat\Demos\Common\EventSystemSpawner.cs" />
     <Compile Include="Assets\Photon\PhotonChat\Demos\Common\OnStartDelete.cs" />
     <Compile Include="Assets\Photon\PhotonChat\Demos\Common\TextButtonTransition.cs" />
@@ -186,6 +188,7 @@
     <Compile Include="Assets\PissControl.cs" />
     <Compile Include="Assets\ReverseNormals.cs" />
     <Compile Include="Assets\Scripts\Buoyancy.cs" />
+    <Compile Include="Assets\Scripts\DamageTextScript.cs" />
     <Compile Include="Assets\Scripts\DisplayNewLines.cs" />
     <Compile Include="Assets\Scripts\FireballScript.cs" />
     <Compile Include="Assets\Scripts\HealthBubbleSpell.cs" />

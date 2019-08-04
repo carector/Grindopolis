@@ -33,7 +33,12 @@ public class FireballScript : MonoBehaviourPunCallbacks
 
     private void OnTriggerEnter(Collider other)
     {
-        //if(playerRb.gameObject != null && other.gameObject != playerRb.gameObject)
+        if(other.gameObject.GetComponent<EnemyControl>() != null)
+        {
+            other.gameObject.GetComponent<EnemyControl>().ReceiveDamage(10);
+            if (photonView.IsMine)
+                PhotonNetwork.Destroy(this.gameObject);
+        }
         explode = true;
     }
 
