@@ -64,13 +64,17 @@ public class HealthBubbleActual : MonoBehaviourPunCallbacks, IPunObservable
         {
             if(c.gameObject.tag == "Player" && c.GetComponent<PhotonView>().IsMine)
             {
-                if (c.GetComponent<PlayerControllerRigidbody>().combatSettings.health + 2 > 100)
+                // Check to make sure our player is alive...
+                if (c.GetComponent<PlayerControllerRigidbody>().combatSettings.health > 0)
                 {
-                    c.GetComponent<PlayerControllerRigidbody>().combatSettings.health = 100;
-                }
-                else
-                {
-                    c.GetComponent<PlayerControllerRigidbody>().combatSettings.health += 2;
+                    if (c.GetComponent<PlayerControllerRigidbody>().combatSettings.health + 2 > 100)
+                    {
+                        c.GetComponent<PlayerControllerRigidbody>().combatSettings.health = 100;
+                    }
+                    else
+                    {
+                        c.GetComponent<PlayerControllerRigidbody>().combatSettings.health += 2;
+                    }
                 }
             }
         }

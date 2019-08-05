@@ -7,6 +7,7 @@ public class AnnouncementsScript : MonoBehaviourPunCallbacks
 {
     public AudioClip welcomeSound;
     public AudioClip[] joinedSounds;
+    public AudioClip gateOpenSound;
     int storedPlayerCount;
 
     AudioSource audio;
@@ -21,6 +22,11 @@ public class AnnouncementsScript : MonoBehaviourPunCallbacks
     public void RpcWelcomeSound()
     {
         audio.PlayOneShot(welcomeSound);
+    }
+
+    public void RpcIronGateSound()
+    {
+        audio.PlayOneShot(gateOpenSound);
     }
 
     public void FixedUpdate()

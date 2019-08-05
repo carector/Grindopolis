@@ -81,7 +81,7 @@ MonoBehaviour:
   - Illuminate
   - Levitate
   - Health Bubble
-  - Piss
+  - Pee
   sidebar: {fileID: 7190729985899239434}
   player: {fileID: 0}
   playerBodyRenderer: {fileID: 0}
@@ -91,6 +91,7 @@ MonoBehaviour:
   manaText: {fileID: 2252440390892401982}
   hintText: {fileID: 4954011292042285669}
   sidebarBackground: {fileID: 6163444178996101155}
+  screenBlackout: {fileID: 3774111076984585074}
   currentSidebarIndex: 0
 --- !u!82 &3276516485357416268
 AudioSource:
@@ -837,13 +838,14 @@ RectTransform:
   - {fileID: 2723372025791820439}
   - {fileID: 1004354071914707034}
   - {fileID: 3911512363987767358}
+  - {fileID: 3583207467302056264}
   m_Father: {fileID: 72}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 260.5, y: 239}
-  m_SizeDelta: {x: 521, y: 478}
+  m_AnchoredPosition: {x: 278, y: 239}
+  m_SizeDelta: {x: 556, y: 478}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!223 &8125378729287798400
 Canvas:
@@ -1360,6 +1362,80 @@ MonoBehaviour:
     m_TypeName: UnityEngine.UI.MaskableGraphic+CullStateChangedEvent, UnityEngine.UI,
       Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
   m_Sprite: {fileID: 10911, guid: 0000000000000000f000000000000000, type: 0}
+  m_Type: 1
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+--- !u!1 &2575211129296157863
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3583207467302056264}
+  - component: {fileID: 3571153252359256868}
+  - component: {fileID: 3774111076984585074}
+  m_Layer: 5
+  m_Name: ScreenBlackout
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &3583207467302056264
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2575211129296157863}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 5902651983276761809}
+  m_RootOrder: 5
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 438.5, y: 182}
+  m_SizeDelta: {x: 877, y: 364}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &3571153252359256868
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2575211129296157863}
+  m_CullTransparentMesh: 0
+--- !u!114 &3774111076984585074
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2575211129296157863}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -765806418, guid: f70555f144d8491a825f0804e09c671c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 0, g: 0, b: 0, a: 0}
+  m_RaycastTarget: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+    m_TypeName: UnityEngine.UI.MaskableGraphic+CullStateChangedEvent, UnityEngine.UI,
+      Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
+  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
   m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -2816,8 +2892,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 260.5, y: 239}
-  m_SizeDelta: {x: 521, y: 478}
+  m_AnchoredPosition: {x: 278, y: 239}
+  m_SizeDelta: {x: 556, y: 478}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!223 &4447721231912168217
 Canvas:
@@ -4124,8 +4200,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 208.81, y: 0}
-  m_SizeDelta: {x: 522.02, y: 625}
+  m_AnchoredPosition: {x: 262.74, y: 0}
+  m_SizeDelta: {x: 656.83, y: 625}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &6648179108888754545
 CanvasRenderer:

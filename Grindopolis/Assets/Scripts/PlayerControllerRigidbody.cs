@@ -111,6 +111,9 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
     public ParticleSystem pissStream;
     public GameObject hitMarker;
     public Transform hitMarkerPosition;
+    public Collider headCollider;
+    public Rigidbody camRigidbody;
+    public Collider camCollider;
     // Private vars
     private GameObject storedPlatform;
 
@@ -129,6 +132,7 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
     int storedColor = -1;
     bool isDeductingMana;
     bool isAddingMana;
+    public bool isDead;
 
     public float groundCheckOffset = 1.01f;
 
@@ -250,185 +254,188 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
             return;
         }
 
-        if (movementSettings.isGrounded)
+        // Check if our health is 0
+        if(!isDead)
         {
-            Vector3 velocity = rb.velocity;
-
-            mVar.jumping = false;
-            mVar.doubleJumping = false;
-
-
-            // Jump
-            if (Input.GetButtonDown("Jump") && !uiMan.menuOpen)
+            if (movementSettings.isGrounded)
             {
-                rb.velocity = new Vector3(velocity.x, CalculateJumpVerticalSpeed(), velocity.z);
-                photonView.RPC("PlayJumpSound", RpcTarget.All);
-                mVar.jumping = true;
-            }
-        }
-        else if (!mVar.doubleJumping && !uiMan.menuOpen)
-        {
-            Vector3 velocity = rb.velocity;
+                Vector3 velocity = rb.velocity;
 
-            // Jump
-            if (Input.GetButtonDown("Jump"))
-            {
-                rb.velocity = new Vector3(velocity.x, CalculateJumpVerticalSpeed(), velocity.z);
-                photonView.RPC("PlayJumpSound", RpcTarget.All);
-                mVar.doubleJumping = true;
-            }
-        }
-        movementSettings.isGrounded = GroundCheck();
+                mVar.jumping = false;
+                mVar.doubleJumping = false;
 
-        // Spellcast check
-        if (!uiMan.menuOpen)
-        {
-            // Execute a different spell depending on what we currently have selected
 
-            // Magic missile
-            if (uiMan.currentSidebarIndex == 0)
-            {
-                if (Input.GetMouseButtonDown(0))
+                // Jump
+                if (Input.GetButtonDown("Jump") && !uiMan.menuOpen)
                 {
-                    GameObject proj = PhotonNetwork.Instantiate(this.fireballProjectile.name, projectilePosition.position, projectilePosition.rotation);
-                    proj.GetComponent<FireballScript>().playerRb = rb;
+                    rb.velocity = new Vector3(velocity.x, CalculateJumpVerticalSpeed(), velocity.z);
+                    photonView.RPC("PlayJumpSound", RpcTarget.All);
+                    mVar.jumping = true;
                 }
             }
-
-            // Illuminate
-            else if (uiMan.currentSidebarIndex == 1)
+            else if (!mVar.doubleJumping && !uiMan.menuOpen)
             {
-                if (Input.GetMouseButton(0))
+                Vector3 velocity = rb.velocity;
+
+                // Jump
+                if (Input.GetButtonDown("Jump"))
                 {
-                    staff.Illuminate(true);
-                }
-                else
-                {
-                    staff.Illuminate(false);
+                    rb.velocity = new Vector3(velocity.x, CalculateJumpVerticalSpeed(), velocity.z);
+                    photonView.RPC("PlayJumpSound", RpcTarget.All);
+                    mVar.doubleJumping = true;
                 }
             }
+            movementSettings.isGrounded = GroundCheck();
 
-            // Levitate
-            else if (uiMan.currentSidebarIndex == 2)
+            // Spellcast check
+            if (!uiMan.menuOpen)
             {
-                if (heldObject != null && loopedAudio.clip != levitateSound)
+                // Execute a different spell depending on what we currently have selected
+
+                // Magic missile
+                if (uiMan.currentSidebarIndex == 0)
                 {
-                    //loopedAudio.clip = levitateSound;
-                    loopedAudio.Play();
-                }
-
-                vortexPos.transform.rotation = Quaternion.identity;
-
-                Vector3 explosionPos = vortexPos.position;
-
-
-                if (heldObject != null && (Input.GetMouseButtonUp(0) || heldObject.GetComponent<PickupOwnershipControl>().focusedTransform == null))
-                {
-                    vortexPos.GetComponent<ParticleSystem>().startColor = Color.clear;
-
-                    staff.StaffEmissions(false);
-                    staff.VortexEmissions(false);
-
-                    heldObject.GetComponent<PhotonView>().RPC("RpcDropObject", RpcTarget.All, heldObject.transform.position, -transform.forward*25);
-                    heldObject = null;
-
-                    isHoldingObject = false;
-                }
-                else if (Input.GetMouseButton(0) && combatSettings.mana > 0)
-                {
-                    //if (!isDeductingMana)
-                    //StartCoroutine(DeductMana(0.2f, 1));
-
-                    staff.StaffEmissions(true);
-
-                    if (!isHoldingObject)
+                    if (Input.GetMouseButtonDown(0))
                     {
-                        RaycastCheck();
+                        GameObject proj = PhotonNetwork.Instantiate(this.fireballProjectile.name, projectilePosition.position, projectilePosition.rotation);
+                        proj.GetComponent<FireballScript>().playerRb = rb;
+                    }
+                }
+
+                // Illuminate
+                else if (uiMan.currentSidebarIndex == 1)
+                {
+                    if (Input.GetMouseButton(0))
+                    {
+                        staff.Illuminate(true);
                     }
                     else
                     {
-                        staff.VortexEmissions(true);
-                        loopedAudio.volume = Mathf.Lerp(loopedAudio.volume, 0.8f, 0.25f);
-                        loopedAudio.pitch = 1 + (Vector3.Distance(vortexPos.position, heldObject.transform.position) / 5f);
+                        staff.Illuminate(false);
                     }
                 }
-                else if (Input.GetMouseButtonUp(0))
-                {
-                    staff.StaffEmissions(false);
-                }
 
-                if (!isHoldingObject)
+                // Levitate
+                else if (uiMan.currentSidebarIndex == 2)
                 {
-                    loopedAudio.volume = Mathf.Lerp(loopedAudio.volume, 0, 0.5f);
-
-                    if (loopedAudio.volume <= 0.1f)
+                    if (heldObject != null && loopedAudio.clip != levitateSound)
                     {
-                        loopedAudio.Stop();
-                        loopedAudio.volume = 0;
-                        loopedAudio.clip = null;
+                        //loopedAudio.clip = levitateSound;
+                        loopedAudio.Play();
+                    }
+
+                    vortexPos.transform.rotation = Quaternion.identity;
+
+                    Vector3 explosionPos = vortexPos.position;
+
+
+                    if (heldObject != null && (Input.GetMouseButtonUp(0) || heldObject.GetComponent<PickupOwnershipControl>().focusedTransform == null))
+                    {
+                        vortexPos.GetComponent<ParticleSystem>().startColor = Color.clear;
+
+                        staff.StaffEmissions(false);
+                        staff.VortexEmissions(false);
+
+                        heldObject.GetComponent<PhotonView>().RPC("RpcDropObject", RpcTarget.All, heldObject.transform.position, -transform.forward * 25);
+                        heldObject = null;
+
+                        isHoldingObject = false;
+                    }
+                    else if (Input.GetMouseButton(0) && combatSettings.mana > 0)
+                    {
+                        //if (!isDeductingMana)
+                        //StartCoroutine(DeductMana(0.2f, 1));
+
+                        staff.StaffEmissions(true);
+
+                        if (!isHoldingObject)
+                        {
+                            RaycastCheck();
+                        }
+                        else
+                        {
+                            //staff.VortexEmissions(true);
+                            loopedAudio.volume = Mathf.Lerp(loopedAudio.volume, 0.8f, 0.25f);
+                            loopedAudio.pitch = 1 + (Vector3.Distance(vortexPos.position, heldObject.transform.position) / 5f);
+                        }
+                    }
+                    else if (Input.GetMouseButtonUp(0))
+                    {
+                        staff.StaffEmissions(false);
+                    }
+
+                    if (!isHoldingObject)
+                    {
+                        loopedAudio.volume = Mathf.Lerp(loopedAudio.volume, 0, 0.5f);
+
+                        if (loopedAudio.volume <= 0.1f)
+                        {
+                            loopedAudio.Stop();
+                            loopedAudio.volume = 0;
+                            loopedAudio.clip = null;
+                        }
                     }
                 }
+
+                // Health Bubble
+                else if (uiMan.currentSidebarIndex == 3)
+                {
+                    if (Input.GetMouseButtonDown(0))
+                    {
+                        GameObject proj = PhotonNetwork.Instantiate(this.healthBubbleProjectile.name, projectilePosition.position, projectilePosition.rotation);
+                    }
+                }
+
+                // Piss
+                else if (uiMan.currentSidebarIndex == 4)
+                {
+                    loopedAudio.pitch = 1;
+
+                    if (Input.GetMouseButton(0))
+                    {
+                        mVar.isPissing = true;
+
+                    }
+                    else
+                    {
+                        mVar.isPissing = false;
+                    }
+                }
+
+
+                // Reset light
+                if (uiMan.currentSidebarIndex != 1)
+                    staffLight.intensity = Mathf.Lerp(staffLight.intensity, 0, 0.25f);
             }
 
-            // Health Bubble
-            else if (uiMan.currentSidebarIndex == 3)
+            // Recharge mana if we aren't holding the mouse
+            if (!Input.GetMouseButton(0))
             {
-                if (Input.GetMouseButtonDown(0))
-                {
-                    GameObject proj = PhotonNetwork.Instantiate(this.healthBubbleProjectile.name, projectilePosition.position, projectilePosition.rotation);
-                }
+
             }
 
-            // Piss
-            else if (uiMan.currentSidebarIndex == 4)
+            canStandUp = CeilingRaycastCheck();
+
+            // If we're crouching, set that to be true and play our sound effect
+            if (Input.GetKeyDown(KeyCode.LeftControl) && !mVar.isCrouching && !uiMan.menuOpen)
             {
-                loopedAudio.pitch = 1;
-
-                if (Input.GetMouseButton(0))
-                {
-                    mVar.isPissing = true;
-                    
-                }
-                else
-                {
-                    mVar.isPissing = false;
-                }
+                mVar.isCrouching = true;
             }
-
-
-            // Reset light
-            if (uiMan.currentSidebarIndex != 1)
-                staffLight.intensity = Mathf.Lerp(staffLight.intensity, 0, 0.25f);
-        }
-
-        // Recharge mana if we aren't holding the mouse
-        if (!Input.GetMouseButton(0))
-        {
-
-        }
-
-        canStandUp = CeilingRaycastCheck();
-
-        // If we're crouching, set that to be true and play our sound effect
-        if (Input.GetKeyDown(KeyCode.LeftControl) && !mVar.isCrouching && !uiMan.menuOpen)
-        {
-            mVar.isCrouching = true;
-        }
-        else if (canStandUp && Input.GetKeyUp(KeyCode.LeftControl))
-        {
-            mVar.isCrouching = false;
-        }
-        else if (!Input.GetKey(KeyCode.LeftControl) && mVar.isCrouching)
-        {
-            if (canStandUp)
+            else if (canStandUp && Input.GetKeyUp(KeyCode.LeftControl))
             {
                 mVar.isCrouching = false;
             }
+            else if (!Input.GetKey(KeyCode.LeftControl) && mVar.isCrouching)
+            {
+                if (canStandUp)
+                {
+                    mVar.isCrouching = false;
+                }
+            }
+
+            // Constantly use raycast to check for grabbable objects and NPCs
+            RaycastCheck();
         }
-
-        // Constantly use raycast to check for grabbable objects and NPCs
-        RaycastCheck();
-
     }
 
     // Movement calculation and physics are controlled with FixedUpdate
@@ -436,144 +443,146 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
     private void FixedUpdate()
     {
         // All content that doesn't require this to be the client's player goes here
-
-        // Set our color
-        if (storedColor != mVar.playerMatIndex)
+        if (!isDead)
         {
-            bodyRenderer.material = playerColors[mVar.playerMatIndex];
-            storedColor = mVar.playerMatIndex;
-        }
-
-        // Enable piss.
-        if(mVar.isPissing)
-        {
-            pissStream.Play();
-            loopedAudio.volume = Mathf.Lerp(loopedAudio.volume, 0.8f, 0.25f);
-
-            if (loopedAudio.clip != pissSound)
+            // Set our color
+            if (storedColor != mVar.playerMatIndex)
             {
-                loopedAudio.clip = pissSound;
-                loopedAudio.Play();
+                bodyRenderer.material = playerColors[mVar.playerMatIndex];
+                storedColor = mVar.playerMatIndex;
             }
-        }
-        else
-        {
-            mVar.isPissing = false;
-            pissStream.Stop();
 
-            loopedAudio.volume = Mathf.Lerp(loopedAudio.volume, 0, 0.5f);
-
-            if (loopedAudio.volume <= 0.1f)
+            // Enable piss.
+            if (mVar.isPissing)
             {
-                loopedAudio.Stop();
-                loopedAudio.volume = 0;
-                loopedAudio.clip = null;
-            }
-        }
+                pissStream.Play();
+                loopedAudio.volume = Mathf.Lerp(loopedAudio.volume, 0.8f, 0.25f);
 
-        // Play footstep sounds
-        if ((Vector3.Distance(footstepPos, transform.position) >= 3f) && GroundCheck())
-        {
-            footstepPos = transform.position;
-            PlaySFX(0);
-        }
-
-        // If we're crouching, adjust our player's height and camera position to give the illusion of crouching
-        CapsuleCollider cc = GetComponent<CapsuleCollider>();
-
-        if (mVar.isCrouching)
-        {
-            if (!crouchSfx)
-            {
-                PlaySFX(3);
-                crouchSfx = true;
-            }
-            cc.center = new Vector3(0, -0.5f, 0);
-            cc.height = 1;
-            bodyRenderer.transform.localPosition = Vector3.Lerp(bodyRenderer.transform.localPosition, new Vector3(0, -0.5307f, 0), 0.25f);
-            bodyRenderer.transform.localScale = Vector3.Lerp(bodyRenderer.transform.localScale, new Vector3(0.34343f, 0.7482614f, 0.34343f), 0.25f);
-
-            cam.transform.localPosition = Vector3.Lerp(cam.transform.localPosition, Vector3.zero, 0.25f);
-
-            groundCheckOffset = Mathf.Lerp(groundCheckOffset, 0.75f, 0.25f);
-        }
-        else
-        {
-            if (crouchSfx)
-            {
-                PlaySFX(4);
-                crouchSfx = false;
-            }
-            cc.center = Vector3.zero;
-            cc.height = 2.4f;
-
-            bodyRenderer.transform.localPosition = Vector3.Lerp(bodyRenderer.transform.localPosition, new Vector3(0, -0.0621f, 0), 0.25f);
-            bodyRenderer.transform.localScale = Vector3.Lerp(bodyRenderer.transform.localScale, new Vector3(0.34343f, 1.12325f, 0.34343f), 0.25f);
-
-            cam.transform.localPosition = Vector3.Lerp(cam.transform.localPosition, new Vector3(0, 1, 0), 0.25f);
-
-            groundCheckOffset = Mathf.Lerp(groundCheckOffset, 1.01f, 0.25f);
-        }
-
-
-        // Make sure this is our client's player
-        if (photonView.IsMine == false && PhotonNetwork.IsConnected)
-        {
-            return;
-        }
-
-        if (movementSettings.isGrounded)
-        {
-            // Calculate how fast we should be moving
-            Vector3 targetVelocity = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
-
-            targetVelocity = transform.TransformDirection(targetVelocity);
-
-            if (Input.GetKey(KeyCode.LeftShift))
-            {
-                targetVelocity *= movementSettings.runSpeed;
+                if (loopedAudio.clip != pissSound)
+                {
+                    loopedAudio.clip = pissSound;
+                    loopedAudio.Play();
+                }
             }
             else
             {
-                targetVelocity *= movementSettings.walkSpeed;
+                mVar.isPissing = false;
+                pissStream.Stop();
+
+                loopedAudio.volume = Mathf.Lerp(loopedAudio.volume, 0, 0.5f);
+
+                if (loopedAudio.volume <= 0.1f)
+                {
+                    loopedAudio.Stop();
+                    loopedAudio.volume = 0;
+                    loopedAudio.clip = null;
+                }
             }
 
-            // Apply a force that attempts to reach our target velocity
-            Vector3 velocity = rb.velocity;
-            Vector3 velocityChange = (targetVelocity - velocity);
-            velocityChange.x = Mathf.Clamp(velocityChange.x, -movementSettings.maxVelocityChange, movementSettings.maxVelocityChange);
-            velocityChange.z = Mathf.Clamp(velocityChange.z, -movementSettings.maxVelocityChange, movementSettings.maxVelocityChange);
-            velocityChange.y = 0;
+            // Play footstep sounds
+            if ((Vector3.Distance(footstepPos, transform.position) >= 3f) && GroundCheck())
+            {
+                footstepPos = transform.position;
+                PlaySFX(0);
+            }
 
-            if (!uiMan.menuOpen)
-                rb.AddForce(velocityChange, ForceMode.Impulse);
+            // If we're crouching, adjust our player's height and camera position to give the illusion of crouching
+            CapsuleCollider cc = GetComponent<CapsuleCollider>();
+
+            if (mVar.isCrouching)
+            {
+                if (!crouchSfx)
+                {
+                    PlaySFX(3);
+                    crouchSfx = true;
+                }
+                cc.center = new Vector3(0, -0.5f, 0);
+                cc.height = 1;
+                bodyRenderer.transform.localPosition = Vector3.Lerp(bodyRenderer.transform.localPosition, new Vector3(0, -0.5307f, 0), 0.25f);
+                bodyRenderer.transform.localScale = Vector3.Lerp(bodyRenderer.transform.localScale, new Vector3(0.34343f, 0.7482614f, 0.34343f), 0.25f);
+
+                cam.transform.localPosition = Vector3.Lerp(cam.transform.localPosition, Vector3.zero, 0.25f);
+
+                groundCheckOffset = Mathf.Lerp(groundCheckOffset, 0.75f, 0.25f);
+            }
+            else
+            {
+                if (crouchSfx)
+                {
+                    PlaySFX(4);
+                    crouchSfx = false;
+                }
+                cc.center = Vector3.zero;
+                cc.height = 2.4f;
+
+                bodyRenderer.transform.localPosition = Vector3.Lerp(bodyRenderer.transform.localPosition, new Vector3(0, -0.0621f, 0), 0.25f);
+                bodyRenderer.transform.localScale = Vector3.Lerp(bodyRenderer.transform.localScale, new Vector3(0.34343f, 1.12325f, 0.34343f), 0.25f);
+
+                cam.transform.localPosition = Vector3.Lerp(cam.transform.localPosition, new Vector3(0, 1, 0), 0.25f);
+
+                groundCheckOffset = Mathf.Lerp(groundCheckOffset, 1.01f, 0.25f);
+            }
+
+
+            // Make sure this is our client's player
+            if (photonView.IsMine == false && PhotonNetwork.IsConnected)
+            {
+                return;
+            }
+
+            if (movementSettings.isGrounded)
+            {
+                // Calculate how fast we should be moving
+                Vector3 targetVelocity = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
+
+                targetVelocity = transform.TransformDirection(targetVelocity);
+
+                if (Input.GetKey(KeyCode.LeftShift))
+                {
+                    targetVelocity *= movementSettings.runSpeed;
+                }
+                else
+                {
+                    targetVelocity *= movementSettings.walkSpeed;
+                }
+
+                // Apply a force that attempts to reach our target velocity
+                Vector3 velocity = rb.velocity;
+                Vector3 velocityChange = (targetVelocity - velocity);
+                velocityChange.x = Mathf.Clamp(velocityChange.x, -movementSettings.maxVelocityChange, movementSettings.maxVelocityChange);
+                velocityChange.z = Mathf.Clamp(velocityChange.z, -movementSettings.maxVelocityChange, movementSettings.maxVelocityChange);
+                velocityChange.y = 0;
+
+                if (!uiMan.menuOpen)
+                    rb.AddForce(velocityChange, ForceMode.Impulse);
+            }
+
+            else
+            {
+
+                // Calculate how fast we should be moving
+                Vector3 targetVelocity = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
+                targetVelocity = transform.TransformDirection(targetVelocity);
+                targetVelocity *= movementSettings.walkSpeed * 0.75f;
+
+                // Apply a force that attempts to reach our target velocity
+                Vector3 velocity = rb.velocity;
+                Vector3 velocityChange = (targetVelocity - velocity);
+                velocityChange.x = Mathf.Clamp(velocityChange.x, -movementSettings.maxVelocityChange, movementSettings.maxVelocityChange);
+                velocityChange.z = Mathf.Clamp(velocityChange.z, -movementSettings.maxVelocityChange, movementSettings.maxVelocityChange);
+                velocityChange.y = 0;
+                rb.AddForce(velocityChange);
+
+                rb.AddForce(velocityChange);
+
+            }
+
+
+            // We apply gravity manually for more tuning control
+            rb.AddForce(new Vector3(0, -movementSettings.gravity * rb.mass, 0));
+
+            movementSettings.isGrounded = GroundCheck();
         }
-
-        else
-        {
-
-            // Calculate how fast we should be moving
-            Vector3 targetVelocity = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
-            targetVelocity = transform.TransformDirection(targetVelocity);
-            targetVelocity *= movementSettings.walkSpeed * 0.75f;
-
-            // Apply a force that attempts to reach our target velocity
-            Vector3 velocity = rb.velocity;
-            Vector3 velocityChange = (targetVelocity - velocity);
-            velocityChange.x = Mathf.Clamp(velocityChange.x, -movementSettings.maxVelocityChange, movementSettings.maxVelocityChange);
-            velocityChange.z = Mathf.Clamp(velocityChange.z, -movementSettings.maxVelocityChange, movementSettings.maxVelocityChange);
-            velocityChange.y = 0;
-            rb.AddForce(velocityChange);
-
-            rb.AddForce(velocityChange);
-
-        }
-
-
-        // We apply gravity manually for more tuning control
-        rb.AddForce(new Vector3(0, -movementSettings.gravity * rb.mass, 0));
-
-        movementSettings.isGrounded = GroundCheck();
     }
 
     // Boosts the player in a direction in midair
@@ -681,6 +690,68 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
     {
         combatSettings.health -= damage;
     }
+
+    // Death process
+    public IEnumerator DeathSequence(Vector3 force)
+    {
+        isDead = true;
+        PlaySFX(5);
+        rb.isKinematic = true;
+
+        // Send our camera flying
+        headCollider.isTrigger = true;
+
+        cam.GetComponent<PlayerLook>().enabled = false;
+        camRigidbody.isKinematic = false;
+        camCollider.isTrigger = false;
+        yield return new WaitForEndOfFrame();
+        camRigidbody.AddForce(force, ForceMode.VelocityChange);
+
+        yield return new WaitForSeconds(4);
+        print("Finished delay");
+
+        while(uiMan.screenBlackout.color.a < 0.95f)
+        {
+            uiMan.screenBlackout.color = new Color(0, 0, 0, uiMan.screenBlackout.color.a + 0.03f);
+            yield return null;
+        }
+
+        uiMan.screenBlackout.color = Color.black;
+        yield return new WaitForSeconds(0.25f);
+
+        // Reset camera and fade in screen
+        transform.position = new Vector3(Random.Range(-10, 10), 1.2f, Random.Range(-5, -15));
+        transform.rotation = Quaternion.identity;
+
+        camRigidbody.isKinematic = true;
+        camRigidbody.angularVelocity = Vector3.zero;
+        camRigidbody.velocity = Vector3.zero;
+        camCollider.isTrigger = true;
+        headCollider.isTrigger = false;
+
+        cam.transform.localPosition = new Vector3(0, 1, 0);
+        cam.transform.localRotation = Quaternion.identity;
+
+        while (uiMan.screenBlackout.color.a > 0.05f)
+        {
+            uiMan.screenBlackout.color = new Color(0, 0, 0, uiMan.screenBlackout.color.a - 0.03f);
+            yield return null;
+        }
+
+        uiMan.screenBlackout.color = Color.clear;
+
+        while(combatSettings.health < 100)
+        {
+            combatSettings.health += 1;
+            yield return null;
+        }
+
+        rb.isKinematic = false;
+        cam.GetComponent<PlayerLook>().enabled = true;
+
+        isDead = false;
+    }
+
     void PickupObject()
     {
         Debug.Log("Picked up object");
@@ -699,6 +770,7 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
         // 2 = Pickup Jump (To show you ain't fuckin around)
         // 3 = Crouch
         // 4 = Uncrouch
+        // 5 = Death
 
         if (ind == 0)
         {
@@ -719,6 +791,10 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
         else if (ind == 4)
         {
             pSounds.PlayUncrouchSound();
+        }
+        else if(ind == 5)
+        {
+            pSounds.PlayDeathSound();
         }
 
         // Be sure to reset sfxIndex so we don't constantly play sfxIndex

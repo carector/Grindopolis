@@ -185,6 +185,8 @@ GameObject:
   - component: {fileID: 817}
   - component: {fileID: 924}
   - component: {fileID: 868}
+  - component: {fileID: 2382197514244618528}
+  - component: {fileID: 5764541783334240312}
   m_Layer: 9
   m_Name: PlayerCamera
   m_TagString: Untagged
@@ -405,6 +407,7 @@ MonoBehaviour:
   fallDamageSound: {fileID: 8300000, guid: 8bddcb8d5cabe164aa26471fc427fd61, type: 3}
   crouchSound: {fileID: 8300000, guid: 7f79f5ca47d3ba449b175babd56b4afa, type: 3}
   uncrouchSound: {fileID: 8300000, guid: 64a65b5ac298cff4da86557043ab8112, type: 3}
+  deathSound: {fileID: 8300000, guid: 88103c73330fa2447afc460871a4937a, type: 3}
 --- !u!114 &924
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -442,6 +445,35 @@ MonoBehaviour:
   m_SynchronizePosition: 0
   m_SynchronizeRotation: 1
   m_SynchronizeScale: 0
+--- !u!65 &2382197514244618528
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 161}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 0.7, y: 0.7, z: 0.7}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!54 &5764541783334240312
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 161}
+  serializedVersion: 2
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_UseGravity: 1
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
 --- !u!1 &162
 GameObject:
   m_ObjectHideFlags: 0
@@ -570,7 +602,7 @@ MonoBehaviour:
     walkSpeed: 6.5
     maxVelocityChange: 10
   combatSettings:
-    health: 100
+    health: 15
     mana: 100
     canAttack: 1
     spellObject1: {fileID: 0}
@@ -612,6 +644,10 @@ MonoBehaviour:
   hitMarker: {fileID: 7522445674175530727, guid: 38027d11375750b4993d82e2ebb995a1,
     type: 3}
   hitMarkerPosition: {fileID: 6469387153936744725}
+  headCollider: {fileID: 658}
+  camRigidbody: {fileID: 5764541783334240312}
+  camCollider: {fileID: 2382197514244618528}
+  isDead: 0
   groundCheckOffset: 1.01
 --- !u!136 &673
 CapsuleCollider:

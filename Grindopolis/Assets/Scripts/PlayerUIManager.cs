@@ -29,6 +29,7 @@ public class PlayerUIManager : MonoBehaviour
     public Text manaText;
     public Text hintText;
     public Image sidebarBackground;
+    public Image screenBlackout;
 
     bool sidebarOpen;
     public int currentSidebarIndex;

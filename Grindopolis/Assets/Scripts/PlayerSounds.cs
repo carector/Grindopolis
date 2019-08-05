@@ -14,6 +14,7 @@ public class PlayerSounds : MonoBehaviour
     public AudioClip fallDamageSound;
     public AudioClip crouchSound;
     public AudioClip uncrouchSound;
+    public AudioClip deathSound;
 
     // Private vars
     private AudioSource audio;
@@ -50,6 +51,11 @@ public class PlayerSounds : MonoBehaviour
 
         else
             audio.PlayOneShot(fallDamageSound, 1);
+    }
+
+    public void PlayDeathSound()
+    {
+        audio.PlayOneShot(deathSound, 1);
     }
 
     public void PlayCrouchSound()

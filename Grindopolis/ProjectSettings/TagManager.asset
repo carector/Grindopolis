@@ -11,6 +11,7 @@ TagManager:
   - Water
   - WallCollider
   - Terrain
+  - Enemy
   layers:
   - Default
   - TransparentFX

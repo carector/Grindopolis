@@ -6,19 +6,30 @@ public class NPCAnimations : MonoBehaviour
 {
     public bool rotateHead;
     public bool blink;
+    public bool shutEyes;
+
     public float minRotateDistance = 10;
     public GameObject head;
     public GameObject leftEye;
     public GameObject rightEye;
 
+    EnemyControl e;
+
     GameObject player;
     Transform playerCam;
     Vector3 eyeSize;
+    Vector3 shutEyeSize;
 
     // Start is called before the first frame update
     void Start()
     {
         eyeSize = rightEye.transform.localScale;
+        shutEyeSize = new Vector3(eyeSize.x, eyeSize.y, 0.02f);
+        if(GetComponent<EnemyControl>() != null)
+        {
+            e = GetComponent<EnemyControl>();
+            minRotateDistance = e.stats.detectionRange;
+        }
     }
 
     // Update is called once per frame
@@ -37,6 +48,12 @@ public class NPCAnimations : MonoBehaviour
             if (blink)
             {
                 StartCoroutine(RandomBlinks());
+            }
+
+            else if(shutEyes)
+            {
+                leftEye.transform.localScale = Vector3.Lerp(leftEye.transform.localScale, shutEyeSize, 0.2f);
+                rightEye.transform.localScale = Vector3.Lerp(rightEye.transform.localScale, shutEyeSize, 0.2f);
             }
         }
 

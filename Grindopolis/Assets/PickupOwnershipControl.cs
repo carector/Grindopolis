@@ -6,10 +6,13 @@ using Photon.Pun;
 public class PickupOwnershipControl : MonoBehaviourPunCallbacks, IPunObservable
 {
     int storedID;
+    bool hasHitGround;
+
     Rigidbody rb;
 
     public Vector3 difference;
     public Transform focusedTransform;
+    public int collideDamage = 15;
 
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
@@ -71,6 +74,7 @@ public class PickupOwnershipControl : MonoBehaviourPunCallbacks, IPunObservable
         {
             rb.useGravity = true;
             transform.parent = null;
+
         }
     }
 
@@ -87,6 +91,7 @@ public class PickupOwnershipControl : MonoBehaviourPunCallbacks, IPunObservable
     void RpcDropObject(Vector3 newPosition, Vector3 newVelocity)
     {
         transform.parent = null;
+        hasHitGround = false;
 
         rb.AddForce(-newVelocity, ForceMode.VelocityChange);
         rb.angularVelocity = Vector3.zero;
@@ -95,5 +100,22 @@ public class PickupOwnershipControl : MonoBehaviourPunCallbacks, IPunObservable
         focusedTransform = null;
         
         rb.useGravity = true;
+    }
+
+    // Used to deal damage to enemies
+    void OnTriggerEnter(Collider other)
+    {
+        if (hasHitGround)
+            return;
+
+        if (other.gameObject.tag == "Terrain")
+            hasHitGround = true;
+
+        if(rb.velocity.magnitude >= 10 && other.gameObject.GetComponent<EnemyControl>() != null)
+        {
+            EnemyControl e = other.GetComponent<EnemyControl>();
+
+            e.StartCoroutine(e.ReceiveObjectDamage(collideDamage));
+        }
     }
 }
