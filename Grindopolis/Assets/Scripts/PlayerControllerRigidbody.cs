@@ -21,6 +21,8 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
             stream.SendNext(mVar.playerMatIndex);
             stream.SendNext(vortexPos.GetComponent<ParticleSystem>().startColor.a);
             stream.SendNext(mVar.isPissing);
+
+            stream.SendNext(combatSettings.health);
         }
         // Recieve data
         else
@@ -30,6 +32,8 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
             mVar.playerMatIndex = (int)stream.ReceiveNext();
             vortexPos.GetComponent<ParticleSystem>().startColor = new Color(255, 255, 255, (float)stream.ReceiveNext());
             mVar.isPissing = (bool)stream.ReceiveNext();
+
+            combatSettings.health = (int)stream.ReceiveNext();
         }
     }
 
@@ -71,9 +75,8 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
     {
         public int health;
         public int mana;
+        public float cash;
         public bool canAttack = true;
-        public GameObject spellObject1;
-        public GameObject spellObject2;
 
     }
 
@@ -114,6 +117,7 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
     public Collider headCollider;
     public Rigidbody camRigidbody;
     public Collider camCollider;
+    public FootColliderScript foot;
     // Private vars
     private GameObject storedPlatform;
 
@@ -255,7 +259,7 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
         }
 
         // Check if our health is 0
-        if(!isDead)
+        if (!isDead)
         {
             if (movementSettings.isGrounded)
             {
@@ -283,6 +287,7 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
                     rb.velocity = new Vector3(velocity.x, CalculateJumpVerticalSpeed(), velocity.z);
                     photonView.RPC("PlayJumpSound", RpcTarget.All);
                     mVar.doubleJumping = true;
+                    DoubleJumpBoost();
                 }
             }
             movementSettings.isGrounded = GroundCheck();
@@ -559,7 +564,6 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
 
             else
             {
-
                 // Calculate how fast we should be moving
                 Vector3 targetVelocity = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
                 targetVelocity = transform.TransformDirection(targetVelocity);
@@ -571,8 +575,6 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
                 velocityChange.x = Mathf.Clamp(velocityChange.x, -movementSettings.maxVelocityChange, movementSettings.maxVelocityChange);
                 velocityChange.z = Mathf.Clamp(velocityChange.z, -movementSettings.maxVelocityChange, movementSettings.maxVelocityChange);
                 velocityChange.y = 0;
-                rb.AddForce(velocityChange);
-
                 rb.AddForce(velocityChange);
 
             }
@@ -588,7 +590,50 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
     // Boosts the player in a direction in midair
     void DoubleJumpBoost()
     {
+        // Calculate how fast we should be moving
+        int horiz = 0;
+        int vert = 0;
 
+        if(Input.GetKey(KeyCode.D))
+        {
+            horiz = 1;
+        }
+        else if(Input.GetKey(KeyCode.A))
+        {
+            horiz = -1;
+        }
+
+        if (Input.GetKey(KeyCode.W))
+        {
+            vert = 1;
+        }
+        else if(Input.GetKey(KeyCode.S))
+        {
+            vert = -1;
+        }
+
+        if(vert != 0 || horiz != 0)
+        {
+            rb.velocity = new Vector3(0, rb.velocity.y, 0);
+        }
+
+        Vector3 targetVelocity = new Vector3(horiz, 0, vert);
+
+        targetVelocity = transform.TransformDirection(targetVelocity).normalized;
+
+        if(Input.GetKey(KeyCode.LeftShift))
+        {
+            targetVelocity *= movementSettings.runSpeed;
+        }
+        else
+        {
+            targetVelocity *= movementSettings.walkSpeed;
+        }
+
+        targetVelocity.x = Mathf.Clamp(targetVelocity.x, -movementSettings.maxVelocityChange, movementSettings.maxVelocityChange);
+        targetVelocity.z = Mathf.Clamp(targetVelocity.z, -movementSettings.maxVelocityChange, movementSettings.maxVelocityChange);
+
+        rb.AddForce(targetVelocity, ForceMode.VelocityChange);
     }
 
     float CalculateJumpVerticalSpeed()
@@ -600,33 +645,39 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
 
     bool GroundCheck()
     {
-        // Begin by checking if our velocity is greater than zero - can't be grounded if it is
-        Vector3 velocity = rb.velocity;
+        return foot.isGrounded;
 
-        RaycastHit hit;
+        /*List<Collider> col = foot.cols;
 
-        // rayStart begins at 1.01 units lower than the player to make sure we don’t detect the player in our raycast
-        Vector3 rayStart = new Vector3(transform.position.x, transform.position.y - groundCheckOffset, transform.position.z);
+        foreach (Collider c in col)
+        {
+            if (c.gameObject != this.gameObject)
+            {
+                if (c.tag == "Water")
+                {
+                    inWater = true;
+                    mVar.doubleJumping = true;
+                    return false;
+                }
 
-        Debug.DrawRay(rayStart, -transform.up * 0.3f, Color.red);
+                inWater = false;
+                return true;
+            }
+        }
+        */
+
+        /*Debug.DrawRay(rayStart, -transform.up * 0.3f, Color.red);
         // Raycast should extend to the maximum angle the player can walk up
         if (Physics.Raycast(rayStart, -transform.up, out hit, 0.3f))
         {
-            if (hit.collider.tag == "Water")
-            {
-                inWater = true;
-                mVar.doubleJumping = true;
-                return false;
-            }
-
-            inWater = false;
-            return true;
+            
         }
         else
         {
             // If we don't hit anything, fall normally
             return false;
         }
+        */
     }
 
     bool CeilingRaycastCheck()
@@ -689,6 +740,10 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
     public void ReceiveDamage(int damage)
     {
         combatSettings.health -= damage;
+        if (combatSettings.health <= 0 && !isDead)
+        {
+            StartCoroutine(DeathSequence(Vector3.zero));
+        }
     }
 
     // Death process
@@ -706,11 +761,12 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
         camCollider.isTrigger = false;
         yield return new WaitForEndOfFrame();
         camRigidbody.AddForce(force, ForceMode.VelocityChange);
+        camRigidbody.angularVelocity = force;
 
         yield return new WaitForSeconds(4);
         print("Finished delay");
 
-        while(uiMan.screenBlackout.color.a < 0.95f)
+        while (uiMan.screenBlackout.color.a < 0.95f)
         {
             uiMan.screenBlackout.color = new Color(0, 0, 0, uiMan.screenBlackout.color.a + 0.03f);
             yield return null;
@@ -740,7 +796,7 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
 
         uiMan.screenBlackout.color = Color.clear;
 
-        while(combatSettings.health < 100)
+        while (combatSettings.health < 100)
         {
             combatSettings.health += 1;
             yield return null;
@@ -792,7 +848,7 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
         {
             pSounds.PlayUncrouchSound();
         }
-        else if(ind == 5)
+        else if (ind == 5)
         {
             pSounds.PlayDeathSound();
         }

@@ -12,6 +12,8 @@ TagManager:
   - WallCollider
   - Terrain
   - Enemy
+  - Projectile
+  - Tree
   layers:
   - Default
   - TransparentFX

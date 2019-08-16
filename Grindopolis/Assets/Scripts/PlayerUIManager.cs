@@ -28,6 +28,7 @@ public class PlayerUIManager : MonoBehaviour
     public Text healthText;
     public Text manaText;
     public Text hintText;
+    public Text cashText;
     public Image sidebarBackground;
     public Image screenBlackout;
 
@@ -92,9 +93,10 @@ public class PlayerUIManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        // Update our mana and health texts 
+        // Update our text values
         healthText.text = pc.combatSettings.health.ToString();
         manaText.text = pc.combatSettings.mana.ToString();
+        cashText.text = "Cash: "+(Mathf.Round(pc.combatSettings.cash * 100) / 100f).ToString();
 
         // Opens and closes options menu
         if (Input.GetKeyDown(KeyCode.Escape))

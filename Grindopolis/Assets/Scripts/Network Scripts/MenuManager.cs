@@ -4,23 +4,58 @@ using UnityEngine;
 using Photon.Pun;
 using Photon.Realtime;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
+using System.Text;
 
-public class MenuManager : MonoBehaviourPunCallbacks
+public class MenuManager : MonoBehaviourPunCallbacks, ILobbyCallbacks
 {
+    // The screen that's being displayed
+    // 0 = top menu
+    // 1 = Game creator
+    // 2 = Server list
+    // 3 = Options
+    // 4 = Quit confirmation
+    // 5 = Loading screen
+
+    int screen;
+
     bool isConnecting;
+    public bool isHosting;
+    public bool isJoining;
     string gameVersion = "1"; // Used to prevent version mismatches
 
-    [SerializeField]
-    private byte maxPlayersPerRoom = 4;
+    [System.Serializable]
+    public class ServerSettings
+    {
+        public string serverName;
+        public byte serverPlayerCount;
+    }
 
-    public RectTransform enterButton;
+    public ServerSettings customServerSettings;
+    public InputField nameInput;
+    public InputField maxPlayerInput;
+
+    public RectTransform serverCreator;
+    public RectTransform serverList;
+    public RectTransform options;
+    public RectTransform quitConfirmation;
+
+    public RectTransform hostButton;
+    public RectTransform joinButton;
     public RectTransform optionsButton;
     public RectTransform quitButton;
     public RectTransform title;
     public RectTransform loadingText;
+
     public RectTransform screenCenter;
-    public RectTransform inactivePos;
-    public RectTransform inactiveTitlePos;
+    public RectTransform belowPos;
+    public RectTransform abovePos;
+    public RectTransform leftPos;
+    public RectTransform rightPos;
+
+    // Room list information
+    private Dictionary<string, RoomInfo> cachedRoomList;
+    private Dictionary<string, GameObject> roomListEntries;
 
     private void Awake()
     {
@@ -30,34 +65,182 @@ public class MenuManager : MonoBehaviourPunCallbacks
     // Start is called before the first frame update
     void Start()
     {
-
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
     }
 
     private void FixedUpdate()
     {
-        if(isConnecting)
+        // Top menu control
+        if(screen == 0)
         {
-            LerpBelow(enterButton);
-            LerpBelow(quitButton);
-            LerpBelow(optionsButton);
-            LerpAbove(title);
+            LerpToPos(hostButton, new Vector2(0, 143));
+            LerpToPos(joinButton, new Vector2(0, -16));
+            LerpToPos(optionsButton, new Vector2(0, -175));
+            LerpToPos(quitButton, new Vector2(0, -334));
+        }
+        else
+        {
+            LerpLeft(hostButton);
+            LerpLeft(joinButton);
+            LerpLeft(optionsButton);
+            LerpLeft(quitButton);
+        }
+
+        // Server Creation control
+        if (screen == 1)
+        {
+            LerpCenter(serverCreator);
+        }
+        else if (screen == 5)
+        {
+            LerpAbove(serverCreator);
+        }
+        else
+        {
+            LerpRight(serverCreator);
+        }
+
+        // Server list control
+        if(screen == 2)
+        {
+            LerpCenter(serverList);
+        }
+        else if (screen == 5)
+        {
+            LerpAbove(serverCreator);
+        }
+        else
+        {
+            LerpRight(serverList);
+        }
+
+        // Options control
+        if(screen == 3)
+        {
+            LerpCenter(options);
+        }
+        else
+        {
+            LerpRight(options);
+        }
+
+        // Quit confirmation control
+        if (screen == 4)
+        {
+            LerpCenter(quitConfirmation);
+        }
+        else
+        {
+            LerpRight(quitConfirmation);
+        }
+
+        // Loading screen control
+        if(screen == 5)
+        {
             LerpCenter(loadingText);
+            LerpAbove(title);
+        }
+        else
+        {
+            LerpBelow(loadingText);
         }
     }
 
     void LerpBelow (RectTransform rect)
     {
-        rect.anchoredPosition = Vector2.Lerp(rect.anchoredPosition, inactivePos.anchoredPosition, 0.15f);
+        rect.anchoredPosition = Vector2.Lerp(rect.anchoredPosition, belowPos.anchoredPosition, 0.15f);
     }
     void LerpAbove(RectTransform rect)
     {
-        rect.anchoredPosition = Vector2.Lerp(rect.anchoredPosition, inactiveTitlePos.anchoredPosition, 0.05f);
+        rect.anchoredPosition = Vector2.Lerp(rect.anchoredPosition, abovePos.anchoredPosition, 0.05f);
     }
     void LerpCenter(RectTransform rect)
     {
         rect.anchoredPosition = Vector2.Lerp(rect.anchoredPosition, screenCenter.anchoredPosition, 0.25f);
     }
+    void LerpLeft(RectTransform rect)
+    {
+        rect.anchoredPosition = Vector2.Lerp(rect.anchoredPosition, leftPos.anchoredPosition, 0.25f);
+    }
+    void LerpRight(RectTransform rect)
+    {
+        rect.anchoredPosition = Vector2.Lerp(rect.anchoredPosition, rightPos.anchoredPosition, 0.25f);
+    }
+    void LerpToPos(RectTransform rect, Vector2 pos)
+    {
+        rect.anchoredPosition = Vector3.Lerp(rect.anchoredPosition, pos, 0.25f);
+    }
 
+    public void ViewTopMenu()
+    {
+        screen = 0;
+    }
+    public void ViewServerMaker()
+    {
+        screen = 1;
+    }
+    public void ViewServerList()
+    {
+        screen = 2;
+    }
+    public void ViewOptions()
+    {
+        screen = 3;
+    }
+    public void ViewQuitConfirmation()
+    {
+        screen = 4;
+    }
+    public void ViewLoadingScreen()
+    {
+        screen = 5;
+    }
+
+    public void ConnectSingleplayer()
+    {
+        SceneManager.LoadSceneAsync(2);
+    }
+
+    // Joins the lobby so we can see rooms
+    public void OnRoomListButtonClicked()
+    {
+        if (!PhotonNetwork.InLobby)
+        {
+            PhotonNetwork.JoinLobby();
+        }
+    }
+
+    // Clears room list 
+    private void ClearRoomListView()
+    {
+        foreach (GameObject entry in roomListEntries.Values)
+        {
+            Destroy(entry.gameObject);
+        }
+
+        roomListEntries.Clear();
+    }
+
+    // Retrieves room listings
+    public override void OnRoomListUpdate(List<RoomInfo> roomList)
+    {
+
+    }
+    
+
+
+    public void HostGame()
+    {
+        isHosting = true;
+        Connect();
+    }
+
+    public void JoinGame()
+    {
+        isJoining = true;
+        Connect();
+    }
     public void Connect()
     {
         isConnecting = true;
@@ -84,13 +267,22 @@ public class MenuManager : MonoBehaviourPunCallbacks
             }
         }
     }
+    public void CreateRoom()
+    {
 
+    }
     public override void OnConnectedToMaster()
     {
         print("Connected to master");
 
-        if (isConnecting) // Check to see if we're attempting to connect - if this isn't here, we load into a random room automatically after we've left another game (cause we're already connected)
+        if (isConnecting && isJoining) // Check to see if we're attempting to connect - if this isn't here, we load into a random room automatically after we've left another game (cause we're already connected)
             PhotonNetwork.JoinRandomRoom();
+
+        else if(isConnecting && isHosting)
+        {
+            PhotonNetwork.CreateRoom(customServerSettings.serverName, new RoomOptions { MaxPlayers = customServerSettings.serverPlayerCount });
+        }
+            
     }
     public override void OnDisconnected(DisconnectCause cause)
     {
@@ -99,9 +291,7 @@ public class MenuManager : MonoBehaviourPunCallbacks
 
     public override void OnJoinRandomFailed(short returnCode, string message)
     {
-        print("can't join. making room");
-
-        PhotonNetwork.CreateRoom("Grindworld", new RoomOptions { MaxPlayers = maxPlayersPerRoom });
+        // Exit to main screen with error message
     }
 
     public override void OnJoinedRoom()
@@ -115,5 +305,14 @@ public class MenuManager : MonoBehaviourPunCallbacks
     public void QuitGame()
     {
         Application.Quit();
+    }
+
+    public void UpdateServerName()
+    {
+        customServerSettings.serverName = nameInput.text;
+    }
+    public void UpdateServerMaxPlayers()
+    {
+        customServerSettings.serverPlayerCount = byte.Parse(maxPlayerInput.text);
     }
 }

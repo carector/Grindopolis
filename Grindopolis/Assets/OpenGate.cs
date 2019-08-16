@@ -19,8 +19,7 @@ public class OpenGate : MonoBehaviour
         audio = GetComponent<AudioSource>();
     }
 
-    // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
         if(npc.lines.Length == 1)
         {
