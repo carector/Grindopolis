@@ -17,13 +17,19 @@ public class MusicTransitionTrigger : MonoBehaviour
         if(other.gameObject.name == "ClientPlayer")
         {
             // Begin by stopping all running coroutines, so we don't have two transition triggers competing for superiority
-            Debug.Log("Player entered transition zone");
+            //Debug.Log("Player entered transition zone");
             StartCoroutine(TransitionMusic());
         }
     }
 
     IEnumerator TransitionMusic()
     {
+        if (audioToFadeIn.volume <= targetVolume * 0.75f)
+        {
+            audioToFadeIn.Stop();
+            audioToFadeIn.Play();
+        }
+
         foreach(MusicTransitionTrigger trigger in triggers)
         {
             if(trigger != this)

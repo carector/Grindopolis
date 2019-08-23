@@ -8,6 +8,7 @@ public class AnnouncementsScript : MonoBehaviourPunCallbacks
     public AudioClip welcomeSound;
     public AudioClip[] joinedSounds;
     public AudioClip gateOpenSound;
+    public AudioClip outOfBoundsSound;
     int storedPlayerCount;
 
     AudioSource audio;
@@ -27,6 +28,10 @@ public class AnnouncementsScript : MonoBehaviourPunCallbacks
     public void RpcIronGateSound()
     {
         audio.PlayOneShot(gateOpenSound);
+    }
+    public void OutOfBoundsSound()
+    {
+        audio.PlayOneShot(outOfBoundsSound);
     }
 
     public void FixedUpdate()

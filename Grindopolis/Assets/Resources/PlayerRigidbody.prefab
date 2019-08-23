@@ -616,7 +616,7 @@ MonoBehaviour:
     doubleJumping: 0
     playerName: 
     playerMatIndex: 0
-    isPissing: 0
+    isPeeing: 0
   HUDPrefab: {fileID: 43, guid: 123991bc80a808d4aab024acd3984185, type: 3}
   nameDisplayerPrefab: {fileID: 97579393885074928, guid: 06fa1da11e25f4b41bfbfdd3f5c7aa62,
     type: 3}
@@ -642,7 +642,7 @@ MonoBehaviour:
   staffLight: {fileID: 666}
   vortexPos: {fileID: 381}
   pissSound: {fileID: 8300000, guid: 9794b80f23c601a429c8b2b58a6cc3de, type: 3}
-  levitateSound: {fileID: 8300000, guid: c97d6d2727797b24fae3ef619e49ab51, type: 3}
+  levitateSound: {fileID: 8300000, guid: d61bdf53c9702354f9dd8d0342507a7b, type: 3}
   pissStream: {fileID: 6813610160805011038}
   hitMarker: {fileID: 7522445674175530727, guid: 38027d11375750b4993d82e2ebb995a1,
     type: 3}
@@ -651,6 +651,8 @@ MonoBehaviour:
   camRigidbody: {fileID: 5764541783334240312}
   camCollider: {fileID: 2382197514244618528}
   foot: {fileID: 8219321548620853309}
+  outOfBounds: 0
+  canUseSpell: 0101010101
   isDead: 0
   groundCheckOffset: 1.01
 --- !u!136 &673
@@ -10870,7 +10872,7 @@ Transform:
   m_GameObject: {fileID: 7540433132333540959}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: -1.127, z: 0}
-  m_LocalScale: {x: 0.984831, y: 0.1, z: 0.984831}
+  m_LocalScale: {x: 0.88395476, y: 0.089757, z: 0.88395476}
   m_Children: []
   m_Father: {fileID: 376}
   m_RootOrder: 0

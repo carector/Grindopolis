@@ -20,7 +20,7 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
             stream.SendNext(mVar.playerName);
             stream.SendNext(mVar.playerMatIndex);
             stream.SendNext(vortexPos.GetComponent<ParticleSystem>().startColor.a);
-            stream.SendNext(mVar.isPissing);
+            stream.SendNext(mVar.isPeeing);
 
             stream.SendNext(combatSettings.health);
         }
@@ -31,7 +31,7 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
             mVar.playerName = (string)stream.ReceiveNext();
             mVar.playerMatIndex = (int)stream.ReceiveNext();
             vortexPos.GetComponent<ParticleSystem>().startColor = new Color(255, 255, 255, (float)stream.ReceiveNext());
-            mVar.isPissing = (bool)stream.ReceiveNext();
+            mVar.isPeeing = (bool)stream.ReceiveNext();
 
             combatSettings.health = (int)stream.ReceiveNext();
         }
@@ -88,7 +88,7 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
         public bool doubleJumping;
         public string playerName;
         public int playerMatIndex;
-        public bool isPissing;
+        public bool isPeeing;
     }
 
     public static GameObject LocalPlayerInstance;
@@ -118,6 +118,7 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
     public Rigidbody camRigidbody;
     public Collider camCollider;
     public FootColliderScript foot;
+    public bool outOfBounds;
     // Private vars
     private GameObject storedPlatform;
 
@@ -136,6 +137,7 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
     int storedColor = -1;
     bool isDeductingMana;
     bool isAddingMana;
+    public bool[] canUseSpell;
     public bool isDead;
 
     public float groundCheckOffset = 1.01f;
@@ -298,17 +300,21 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
                 // Execute a different spell depending on what we currently have selected
 
                 // Magic missile
-                if (uiMan.currentSidebarIndex == 0)
+                if (uiMan.currentSidebarIndex == 0 && canUseSpell[0])
                 {
                     if (Input.GetMouseButtonDown(0))
                     {
                         GameObject proj = PhotonNetwork.Instantiate(this.fireballProjectile.name, projectilePosition.position, projectilePosition.rotation);
                         proj.GetComponent<FireballScript>().playerRb = rb;
+
+                        StartCoroutine(SpellDelay(4, 0));
+                        uiMan.magicMissleCountdown = 4;
+                        canUseSpell[0] = false;
                     }
                 }
 
                 // Illuminate
-                else if (uiMan.currentSidebarIndex == 1)
+                else if (uiMan.currentSidebarIndex == 1 && canUseSpell[1])
                 {
                     if (Input.GetMouseButton(0))
                     {
@@ -321,27 +327,37 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
                 }
 
                 // Levitate
-                else if (uiMan.currentSidebarIndex == 2)
+                else if (uiMan.currentSidebarIndex == 2 && canUseSpell[2])
                 {
                     if (heldObject != null && loopedAudio.clip != levitateSound)
                     {
-                        //loopedAudio.clip = levitateSound;
+                        loopedAudio.clip = levitateSound;
                         loopedAudio.Play();
                     }
 
                     vortexPos.transform.rotation = Quaternion.identity;
 
-                    Vector3 explosionPos = vortexPos.position;
-
-
-                    if (heldObject != null && (Input.GetMouseButtonUp(0) || heldObject.GetComponent<PickupOwnershipControl>().focusedTransform == null))
+                    if (heldObject != null && Input.GetMouseButtonDown(1))
                     {
                         vortexPos.GetComponent<ParticleSystem>().startColor = Color.clear;
 
                         staff.StaffEmissions(false);
                         staff.VortexEmissions(false);
 
-                        heldObject.GetComponent<PhotonView>().RPC("RpcDropObject", RpcTarget.All, heldObject.transform.position, -transform.forward * 25);
+                        //heldObject.GetComponent<PhotonView>().RPC("RpcDropObject", RpcTarget.All, heldObject.transform.position, -transform.forward * 25);
+                        heldObject.GetComponent<PickupControlNoNet>().LaunchObject(heldObject.transform.position, -transform.forward * 20);
+                        heldObject = null;
+
+                        isHoldingObject = false;
+                    }
+                    else if(heldObject != null && (Input.GetMouseButtonUp(0) || heldObject.GetComponent<PickupControlNoNet>().focusedTransform == null))
+                    {
+                        vortexPos.GetComponent<ParticleSystem>().startColor = Color.clear;
+
+                        staff.StaffEmissions(false);
+                        staff.VortexEmissions(false);
+
+                        heldObject.GetComponent<PickupControlNoNet>().DropObject(heldObject.transform.position);
                         heldObject = null;
 
                         isHoldingObject = false;
@@ -355,13 +371,19 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
 
                         if (!isHoldingObject)
                         {
+                            print("Raycasting");
                             RaycastCheck();
                         }
                         else
                         {
                             //staff.VortexEmissions(true);
                             loopedAudio.volume = Mathf.Lerp(loopedAudio.volume, 0.8f, 0.25f);
-                            loopedAudio.pitch = 1 + (Vector3.Distance(vortexPos.position, heldObject.transform.position) / 5f);
+                            float newPitch = 1 + (Vector3.Distance(vortexPos.position, heldObject.transform.position) / 5f);
+
+                            if(newPitch < 1.5f)
+                            {
+                                loopedAudio.pitch = newPitch;
+                            }
                         }
                     }
                     else if (Input.GetMouseButtonUp(0))
@@ -371,9 +393,9 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
 
                     if (!isHoldingObject)
                     {
-                        loopedAudio.volume = Mathf.Lerp(loopedAudio.volume, 0, 0.5f);
+                        loopedAudio.volume = Mathf.Lerp(loopedAudio.volume, 0, 0.25f);
 
-                        if (loopedAudio.volume <= 0.1f)
+                        if (loopedAudio.volume <= 0.05f)
                         {
                             loopedAudio.Stop();
                             loopedAudio.volume = 0;
@@ -383,27 +405,30 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
                 }
 
                 // Health Bubble
-                else if (uiMan.currentSidebarIndex == 3)
+                else if (uiMan.currentSidebarIndex == 3 && canUseSpell[3])
                 {
                     if (Input.GetMouseButtonDown(0))
                     {
                         GameObject proj = PhotonNetwork.Instantiate(this.healthBubbleProjectile.name, projectilePosition.position, projectilePosition.rotation);
+                        StartCoroutine(SpellDelay(30, 3));
+                        uiMan.healthBubbleCountdown = 30;
+                        canUseSpell[3] = false;
                     }
                 }
 
                 // Piss
-                else if (uiMan.currentSidebarIndex == 4)
+                else if (uiMan.currentSidebarIndex == 4 && canUseSpell[4])
                 {
                     loopedAudio.pitch = 1;
 
                     if (Input.GetMouseButton(0))
                     {
-                        mVar.isPissing = true;
+                        mVar.isPeeing = true;
 
                     }
                     else
                     {
-                        mVar.isPissing = false;
+                        mVar.isPeeing = false;
                     }
                 }
 
@@ -458,7 +483,7 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
             }
 
             // Enable piss.
-            if (mVar.isPissing)
+            if (mVar.isPeeing)
             {
                 pissStream.Play();
                 loopedAudio.volume = Mathf.Lerp(loopedAudio.volume, 0.8f, 0.25f);
@@ -471,7 +496,7 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
             }
             else
             {
-                mVar.isPissing = false;
+                mVar.isPeeing = false;
                 pissStream.Stop();
 
                 loopedAudio.volume = Mathf.Lerp(loopedAudio.volume, 0, 0.5f);
@@ -709,10 +734,10 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
             {
                 // Since we can't directly control the pickup physics from each client, we have the pickup itself
                 // control the physics and just update the transform it's focusing on
-                if (hit.collider.GetComponent<PickupOwnershipControl>().focusedTransform != vortexPos)
+                if (hit.collider.GetComponent<PickupControlNoNet>().focusedTransform != vortexPos)
                 {
-                    hit.collider.GetComponent<PhotonView>().RPC("RpcUpdateOwnership", RpcTarget.All, photonView.ViewID, vortexPos.name);
-
+                    //hit.collider.GetComponent<PhotonView>().RPC("RpcUpdateOwnership", RpcTarget.All, photonView.ViewID, vortexPos.name);
+                    hit.collider.GetComponent<PickupControlNoNet>().UpdateTransform(vortexPos);
                     heldObject = hit.collider.gameObject;
                     isHoldingObject = true;
                 }
@@ -744,6 +769,12 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
         {
             StartCoroutine(DeathSequence(Vector3.zero));
         }
+    }
+
+    public IEnumerator SpellDelay(float time, int spellIndex)
+    {
+        yield return new WaitForSeconds(time);
+        canUseSpell[spellIndex] = true;
     }
 
     // Death process
@@ -806,16 +837,6 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
         cam.GetComponent<PlayerLook>().enabled = true;
 
         isDead = false;
-    }
-
-    void PickupObject()
-    {
-        Debug.Log("Picked up object");
-        pickup.SetPickupState(true, this.gameObject);
-    }
-    void DropObject()
-    {
-        pickup.SetPickupState(false, this.gameObject);
     }
 
     void PlaySFX(int ind)

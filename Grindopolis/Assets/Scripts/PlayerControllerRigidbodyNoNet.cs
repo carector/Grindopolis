@@ -9,6 +9,15 @@ using Photon.Pun;
 
 public class PlayerControllerRigidbodyNoNet : MonoBehaviour
 {
+
+
+
+    // HEY HEY HEY HEY HEY
+    // Make sure you copy over the most recent version of the actual multiplayer script before making changes.
+
+
+
+
     void Awake()
     {
         rb = GetComponent<Rigidbody>();

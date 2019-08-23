@@ -24,6 +24,7 @@ public class PlayerUIManager : MonoBehaviour
     public GameObject player;
     public Renderer playerBodyRenderer;
     public Text spellNameText;
+    public Text spellDescText;
     public bool dialogBoxOpen;
     public Text healthText;
     public Text manaText;
@@ -36,6 +37,8 @@ public class PlayerUIManager : MonoBehaviour
     public int currentSidebarIndex;
     float sidebarOpenTime = 4;
 
+    public float magicMissleCountdown;
+    public float healthBubbleCountdown;
 
     InteractableNPC storedNpc;
     AudioSource audio;
@@ -51,7 +54,7 @@ public class PlayerUIManager : MonoBehaviour
     Text line2;
     Text line3;
     Text lineName;
-    
+
     //Text speedText;
 
 
@@ -96,7 +99,7 @@ public class PlayerUIManager : MonoBehaviour
         // Update our text values
         healthText.text = pc.combatSettings.health.ToString();
         manaText.text = pc.combatSettings.mana.ToString();
-        cashText.text = "Cash: "+(Mathf.Round(pc.combatSettings.cash * 100) / 100f).ToString();
+        cashText.text = "Cash: " + (Mathf.Round(pc.combatSettings.cash * 100) / 100f).ToString();
 
         // Opens and closes options menu
         if (Input.GetKeyDown(KeyCode.Escape))
@@ -143,9 +146,9 @@ public class PlayerUIManager : MonoBehaviour
             {
                 if (currentSidebarIndex == 0 && Input.mouseScrollDelta.y > 0)
                 {
-                    currentSidebarIndex = 4;
+                    currentSidebarIndex = 3;
                 }
-                else if (currentSidebarIndex == 4 && Input.mouseScrollDelta.y < 0)
+                else if (currentSidebarIndex == 3 && Input.mouseScrollDelta.y < 0)
                 {
                     currentSidebarIndex = 0;
                 }
@@ -164,12 +167,10 @@ public class PlayerUIManager : MonoBehaviour
             LerpSidebarCursor(currentSidebarIndex);
             LerpSpellSlots(currentSidebarIndex);
             UpdateSpellName(currentSidebarIndex);
-            
-            
 
             sidebarOpenTime -= Time.deltaTime;
 
-            if (sidebarOpenTime <= 0 || Input.GetMouseButton(0))
+            if (sidebarOpenTime <= 0 || (Input.GetMouseButton(0)))
             {
                 sidebarOpen = false;
             }
@@ -179,6 +180,8 @@ public class PlayerUIManager : MonoBehaviour
             LerpSidebar(false);
             spellNameText.text = "";
         }
+
+        UpdateSpellDesc(currentSidebarIndex);
 
         // Check to see if the player has moved far enough away from the NPC it has just interacted with - this is in order to reset the dialog box
         if (storedNpc != null && Vector3.Distance(pc.transform.position, storedNpc.transform.position) >= storedNpc.GetComponent<NPCAnimations>().minRotateDistance)
@@ -208,13 +211,53 @@ public class PlayerUIManager : MonoBehaviour
 
     void UpdateSpellName(int index)
     {
-        if(index < 5)
+        if (index < 5)
             spellNameText.text = spellNames[currentSidebarIndex];
+    }
+
+    void UpdateSpellDesc(int index)
+    {
+        if (magicMissleCountdown > 0)
+        {
+            magicMissleCountdown -= Time.deltaTime;
+        }
+        if (healthBubbleCountdown > 0)
+        {
+            healthBubbleCountdown -= Time.deltaTime;
+        }
+
+        if (!sidebarOpen)
+        {
+            spellDescText.text = "";
+            return;
+        }
+
+        // Countdowns are automatically set by playerControllerRigidbody
+
+        if (magicMissleCountdown > 0)
+        {
+            if (index == 0)
+            {
+                spellDescText.text = "Resting... " + Mathf.RoundToInt(magicMissleCountdown);
+                return;
+            }
+        }
+
+        if (healthBubbleCountdown > 0)
+        {
+            if (index == 3)
+            {
+                spellDescText.text = "Resting... " + Mathf.RoundToInt(healthBubbleCountdown);
+                return;
+            }
+        }
+
+        spellDescText.text = "";
     }
 
     void LerpSpellSlots(int index)
     {
-        if (index < 5)
+        if (index < 4)
         {
             // For active spellslot, lerp it into view
             spellSlots[index].anchoredPosition = Vector3.Lerp(spellSlots[index].anchoredPosition, new Vector3(cursor.anchoredPosition.x, spellSlots[index].anchoredPosition.y), 0.5f);

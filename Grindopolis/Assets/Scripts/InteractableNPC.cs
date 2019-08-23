@@ -17,6 +17,7 @@ public class InteractableNPC : MonoBehaviour
     public bool revertToOriginalLines = true;
     public bool updateLinesWhenDone = true;
     public NPCLines[] lines;
+    public NPCLines[] cleanLines;
     public DisplayNewLines[] linesToUpdate;
 
     NPCLines[] storedLines;

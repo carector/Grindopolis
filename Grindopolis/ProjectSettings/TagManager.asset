@@ -14,6 +14,7 @@ TagManager:
   - Enemy
   - Projectile
   - Tree
+  - MusicTrigger
   layers:
   - Default
   - TransparentFX

@@ -11,7 +11,7 @@ public class FootColliderScript : MonoBehaviour
     
     private void OnTriggerEnter(Collider other)
     {
-        if(other.tag != "Enemy" && other.tag != "Pickup" && other.tag != "Water" && other.tag != "Projectile" && other.tag != "Tree")
+        if(other.tag != "Enemy" && other.tag != "Pickup" && other.tag != "Water" && other.tag != "Projectile" && other.tag != "Tree" && other.tag != "MusicTrigger")
             cols.Add(other);
     }
     private void OnTriggerExit(Collider other)
