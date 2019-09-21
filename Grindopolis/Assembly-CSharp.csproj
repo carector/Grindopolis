@@ -65,6 +65,8 @@
     <Compile Include="Assets\AddFunds.cs" />
     <Compile Include="Assets\AnnouncementsScript.cs" />
     <Compile Include="Assets\EnemyControl.cs" />
+    <Compile Include="Assets\EnemySpawner.cs" />
+    <Compile Include="Assets\ExplosionScript.cs" />
     <Compile Include="Assets\flatman.cs" />
     <Compile Include="Assets\FootColliderScript.cs" />
     <Compile Include="Assets\HeadColliderPositioner.cs" />

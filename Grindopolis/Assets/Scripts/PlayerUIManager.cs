@@ -146,9 +146,9 @@ public class PlayerUIManager : MonoBehaviour
             {
                 if (currentSidebarIndex == 0 && Input.mouseScrollDelta.y > 0)
                 {
-                    currentSidebarIndex = 3;
+                    currentSidebarIndex = 4;
                 }
-                else if (currentSidebarIndex == 3 && Input.mouseScrollDelta.y < 0)
+                else if (currentSidebarIndex == 4 && Input.mouseScrollDelta.y < 0)
                 {
                     currentSidebarIndex = 0;
                 }
@@ -274,7 +274,7 @@ public class PlayerUIManager : MonoBehaviour
     public void ResetDialogWindow()
     {
         StopAllCoroutines();
-        dialogBg.anchoredPosition = new Vector2(267.8f, -192.1f);
+        dialogBg.anchoredPosition = new Vector2(600, -192.1f);
         dialogBoxOpen = false;
 
     }
@@ -346,13 +346,13 @@ public class PlayerUIManager : MonoBehaviour
         if (lineIndex == 0)
             dialogBg.anchoredPosition = new Vector2(267.8f, -192.1f);
 
-        while (dialogBg.anchoredPosition.x >= -265f)
+        while (dialogBg.anchoredPosition.x >= -320f)
         {
-            dialogBg.anchoredPosition = Vector2.Lerp(dialogBg.anchoredPosition, new Vector2(-267.8f, -192.1f), 0.5f);
+            dialogBg.anchoredPosition = Vector2.Lerp(dialogBg.anchoredPosition, new Vector2(-340, -192.1f), 0.5f);
             yield return null;
         }
 
-        dialogBg.anchoredPosition = new Vector2(-267.8f, -192.1f);
+        dialogBg.anchoredPosition = new Vector2(-340, -192.1f);
 
         // Display the first line of the current NPCLines
         line1.text = npc.lines[lineIndex].line1;
@@ -389,7 +389,7 @@ public class PlayerUIManager : MonoBehaviour
         {
             while (dialogBg.anchoredPosition.x <= 265f)
             {
-                dialogBg.anchoredPosition = Vector2.Lerp(dialogBg.anchoredPosition, new Vector2(267.8f, -192.1f), 0.5f);
+                dialogBg.anchoredPosition = Vector2.Lerp(dialogBg.anchoredPosition, new Vector2(600f, -192.1f), 0.5f);
                 yield return null;
             }
 
@@ -402,7 +402,7 @@ public class PlayerUIManager : MonoBehaviour
                 }
             }
 
-            dialogBg.anchoredPosition = new Vector2(267.8f, -192.1f);
+            dialogBg.anchoredPosition = new Vector2(600f, -192.1f);
             dialogBoxOpen = false;
         }
     }

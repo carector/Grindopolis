@@ -307,8 +307,8 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
                         GameObject proj = PhotonNetwork.Instantiate(this.fireballProjectile.name, projectilePosition.position, projectilePosition.rotation);
                         proj.GetComponent<FireballScript>().playerRb = rb;
 
-                        StartCoroutine(SpellDelay(4, 0));
-                        uiMan.magicMissleCountdown = 4;
+                        StartCoroutine(SpellDelay(0.75f, 0));
+                        uiMan.magicMissleCountdown = 0.75f;
                         canUseSpell[0] = false;
                     }
                 }
