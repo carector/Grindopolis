@@ -1,9 +1,25 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Photon.Pun;
 
-public class OpenGate : MonoBehaviour
+public class OpenGate : MonoBehaviourPunCallbacks, IPunObservable
 {
+    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
+        // Send data
+        if (stream.IsWriting)
+        {
+            stream.SendNext(openGate);
+        }
+        // Receive data
+        else
+        {
+            openGate = (bool)stream.ReceiveNext();
+        }
+
+    }
+
     public bool openGate;
     public InteractableNPC npc;
     public AnnouncementsScript an;
@@ -11,6 +27,7 @@ public class OpenGate : MonoBehaviour
     public AudioClip gateSound;
     AudioSource audio;
     bool hasPlayedSound;
+    bool completedCycle;
     
 
     // Start is called before the first frame update
@@ -21,27 +38,32 @@ public class OpenGate : MonoBehaviour
 
     void FixedUpdate()
     {
-        if(npc.lines.Length == 1)
+        if (!completedCycle)
         {
-            openGate = true;
-        }
-
-        if(openGate)
-        {
-            if(!hasPlayedSound)
+            if (npc.lines.Length == 1)
             {
-                audio.PlayOneShot(gateSound);
-                hasPlayedSound = true;
+                openGate = true;
             }
 
-            transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.z + 0.05f);
-
-
-            if(transform.position.z >= stoppingPoint)
+            if (openGate)
             {
-                transform.position = new Vector3(transform.position.x, transform.position.y, stoppingPoint);
-                an.RpcIronGateSound();
-                this.enabled = false;
+                if (!hasPlayedSound)
+                {
+                    audio.PlayOneShot(gateSound);
+                    hasPlayedSound = true;
+                }
+
+                transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.z + 0.05f);
+
+
+                if (transform.position.z >= stoppingPoint)
+                {
+                    transform.position = new Vector3(transform.position.x, transform.position.y, stoppingPoint);
+                    if (an.photonView.IsMine)
+                        an.RpcIronGateSound();
+
+                    completedCycle = true;
+                }
             }
         }
     }

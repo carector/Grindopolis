@@ -34,6 +34,7 @@ public class PlayerUIManager : MonoBehaviour
     public Image screenBlackout;
 
     bool sidebarOpen;
+    bool canScroll;
     public int currentSidebarIndex;
     float sidebarOpenTime = 4;
 
@@ -135,7 +136,7 @@ public class PlayerUIManager : MonoBehaviour
         }
 
         // Opens sidebar / spell selection
-        if (Input.mouseScrollDelta.y != 0 && !Input.GetMouseButton(0))
+        if (Input.mouseScrollDelta.y != 0 && !Input.GetMouseButton(0) && canScroll)
         {
             sidebarOpenTime = 4;
 
@@ -190,6 +191,7 @@ public class PlayerUIManager : MonoBehaviour
         }
 
     }
+    IEnumerator DelayB
     void LerpSidebar(bool active)
     {
         if (active)

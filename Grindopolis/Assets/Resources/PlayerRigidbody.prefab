@@ -654,9 +654,11 @@ MonoBehaviour:
   camCollider: {fileID: 2382197514244618528}
   foot: {fileID: 8219321548620853309}
   outOfBounds: 0
-  canUseSpell: 0101010101
+  canUseSpell: 010101010101
   isDead: 0
   groundCheckOffset: 1.01
+  renderTextureCam: {fileID: 8396368023592990195}
+  renderTextureImage: {fileID: 2617775854314125642}
 --- !u!136 &673
 CapsuleCollider:
   m_ObjectHideFlags: 0

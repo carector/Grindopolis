@@ -146,6 +146,8 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
     Rigidbody pickupToJumpOn;
 
     Camera cam;
+    public Camera renderTextureCam;
+    public Image renderTextureImage;
 
     PlayerSounds pSounds;
     PlayerUIManager uiMan;
@@ -212,6 +214,8 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
 
             Debug.Log("Non-client player joined");
             GetComponentInChildren<AudioListener>().enabled = false;
+            renderTextureImage.enabled = false;
+            renderTextureCam.enabled = false;
 
             // Update our material based on what our playerNetworkScript has stored
             //bodyRenderer.material = playerColors[pns.playerMatIndex];
