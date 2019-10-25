@@ -63,7 +63,7 @@ public class PickupOwnershipControl : MonoBehaviourPunCallbacks, IPunObservable
                 rb.angularVelocity = Vector3.zero;
 
 
-                transform.position = Vector3.Lerp(transform.position, focusedTransform.transform.position, 0.09f);
+                transform.position = Vector3.Lerp(transform.position, focusedTransform.transform.position, 0.15f);
             }
             else
             {
@@ -116,6 +116,12 @@ public class PickupOwnershipControl : MonoBehaviourPunCallbacks, IPunObservable
             EnemyControl e = other.GetComponent<EnemyControl>();
 
             e.StartCoroutine(e.ReceiveObjectDamage(collideDamage));
+        }
+        else if(rb.velocity.magnitude >= 10 && other.gameObject.GetComponent<PlayerControllerRigidbody>() != null)
+        {
+            PlayerControllerRigidbody p = other.GetComponent<PlayerControllerRigidbody>();
+
+            p.ReceiveDamage(collideDamage);
         }
     }
 }

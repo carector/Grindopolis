@@ -39,6 +39,7 @@ public class MenuManager : MonoBehaviourPunCallbacks, ILobbyCallbacks
     public RectTransform serverList;
     public RectTransform options;
     public RectTransform quitConfirmation;
+    public RectTransform serverMenu;
 
     public RectTransform hostButton;
     public RectTransform joinButton;
@@ -46,6 +47,7 @@ public class MenuManager : MonoBehaviourPunCallbacks, ILobbyCallbacks
     public RectTransform quitButton;
     public RectTransform title;
     public RectTransform loadingText;
+    public Text loadingTextElement;
 
     public RectTransform screenCenter;
     public RectTransform belowPos;
@@ -139,11 +141,24 @@ public class MenuManager : MonoBehaviourPunCallbacks, ILobbyCallbacks
         if(screen == 5)
         {
             LerpCenter(loadingText);
-            LerpAbove(title);
         }
         else
         {
             LerpBelow(loadingText);
+        }
+
+        // Multiplayer screen control
+        if (screen == 6)
+        {
+            LerpCenter(serverMenu);
+        }
+        else if(screen == 1)
+        {
+            LerpLeft(serverMenu);
+        }
+        else
+        {
+            LerpRight(serverMenu);
         }
     }
 
@@ -196,9 +211,14 @@ public class MenuManager : MonoBehaviourPunCallbacks, ILobbyCallbacks
     {
         screen = 5;
     }
+    public void ViewServerMenu()
+    {
+        screen = 6;
+    }
 
     public void ConnectSingleplayer()
     {
+        loadingTextElement.text = "Entering Grindopolis...";
         SceneManager.LoadSceneAsync(2);
     }
 
@@ -298,7 +318,7 @@ public class MenuManager : MonoBehaviourPunCallbacks, ILobbyCallbacks
     {
         print("we're in.");
 
-        PhotonNetwork.LoadLevel("GrindworldPhoton");
+        PhotonNetwork.LoadLevel("MultiplayerArena");
 
     }
 

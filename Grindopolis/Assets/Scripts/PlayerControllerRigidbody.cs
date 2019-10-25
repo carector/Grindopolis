@@ -20,7 +20,7 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
             stream.SendNext(mVar.playerName);
             stream.SendNext(mVar.playerMatIndex);
             stream.SendNext(vortexPos.GetComponent<ParticleSystem>().startColor.a);
-            stream.SendNext(mVar.isPeeing);
+            //stream.SendNext(mVar.isPeeing);
 
             stream.SendNext(combatSettings.health);
         }
@@ -31,7 +31,7 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
             mVar.playerName = (string)stream.ReceiveNext();
             mVar.playerMatIndex = (int)stream.ReceiveNext();
             vortexPos.GetComponent<ParticleSystem>().startColor = new Color(255, 255, 255, (float)stream.ReceiveNext());
-            mVar.isPeeing = (bool)stream.ReceiveNext();
+            //mVar.isPeeing = (bool)stream.ReceiveNext();
 
             combatSettings.health = (int)stream.ReceiveNext();
         }
@@ -311,8 +311,8 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
                         GameObject proj = PhotonNetwork.Instantiate(this.fireballProjectile.name, projectilePosition.position, projectilePosition.rotation);
                         proj.GetComponent<FireballScript>().playerRb = rb;
 
-                        StartCoroutine(SpellDelay(0.75f, 0));
-                        uiMan.magicMissleCountdown = 0.75f;
+                        StartCoroutine(SpellDelay(0.3f, 0));
+                        uiMan.magicMissleCountdown = 0.3f;
                         canUseSpell[0] = false;
                     }
                 }
@@ -341,32 +341,34 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
 
                     vortexPos.transform.rotation = Quaternion.identity;
 
-                    if (heldObject != null && Input.GetMouseButtonDown(1))
+                    if (heldObject != null && Input.GetMouseButtonUp(1))
                     {
                         vortexPos.GetComponent<ParticleSystem>().startColor = Color.clear;
 
                         staff.StaffEmissions(false);
                         staff.VortexEmissions(false);
 
-                        //heldObject.GetComponent<PhotonView>().RPC("RpcDropObject", RpcTarget.All, heldObject.transform.position, -transform.forward * 25);
-                        heldObject.GetComponent<PickupControlNoNet>().LaunchObject(heldObject.transform.position, -transform.forward * 20);
+                        heldObject.GetComponent<PhotonView>().RPC("RpcDropObject", RpcTarget.All, heldObject.transform.position, -transform.forward * 20);
+                        //heldObject.GetComponent<PickupOwnershipControl>().LaunchObject(heldObject.transform.position, -transform.forward * 20);
                         heldObject = null;
 
                         isHoldingObject = false;
                     }
-                    else if(heldObject != null && (Input.GetMouseButtonUp(0) || heldObject.GetComponent<PickupControlNoNet>().focusedTransform == null))
+                    /*
+                    else if(heldObject != null && (Input.GetMouseButtonUp(0) || heldObject.GetComponent<PickupOwnershipControl>().focusedTransform == null))
                     {
                         vortexPos.GetComponent<ParticleSystem>().startColor = Color.clear;
 
                         staff.StaffEmissions(false);
                         staff.VortexEmissions(false);
 
-                        heldObject.GetComponent<PickupControlNoNet>().DropObject(heldObject.transform.position);
+                        heldObject.GetComponent<PickupOwnershipControl>().DropObject(heldObject.transform.position);
                         heldObject = null;
 
                         isHoldingObject = false;
                     }
-                    else if (Input.GetMouseButton(0) && combatSettings.mana > 0)
+                    */
+                    else if (Input.GetMouseButton(1) && combatSettings.mana > 0)
                     {
                         //if (!isDeductingMana)
                         //StartCoroutine(DeductMana(0.2f, 1));
@@ -389,10 +391,6 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
                                 loopedAudio.pitch = newPitch;
                             }
                         }
-                    }
-                    else if (Input.GetMouseButtonUp(0))
-                    {
-                        staff.StaffEmissions(false);
                     }
 
                     if (!isHoldingObject)
@@ -738,10 +736,10 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
             {
                 // Since we can't directly control the pickup physics from each client, we have the pickup itself
                 // control the physics and just update the transform it's focusing on
-                if (hit.collider.GetComponent<PickupControlNoNet>().focusedTransform != vortexPos)
+                if (hit.collider.GetComponent<PickupOwnershipControl>().focusedTransform != vortexPos)
                 {
-                    //hit.collider.GetComponent<PhotonView>().RPC("RpcUpdateOwnership", RpcTarget.All, photonView.ViewID, vortexPos.name);
-                    hit.collider.GetComponent<PickupControlNoNet>().UpdateTransform(vortexPos);
+                    hit.collider.GetComponent<PhotonView>().RPC("RpcUpdateOwnership", RpcTarget.All, photonView.ViewID, vortexPos.name);
+                    //hit.collider.GetComponent<PickupControlNoNet>().UpdateTransform(vortexPos);
                     heldObject = hit.collider.gameObject;
                     isHoldingObject = true;
                 }

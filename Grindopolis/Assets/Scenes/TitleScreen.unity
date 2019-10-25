@@ -1186,7 +1186,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Enter
+  m_Text: Enter the Grind
 --- !u!222 &347007704
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1194,6 +1194,53 @@ CanvasRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 347007701}
+  m_CullTransparentMesh: 0
+--- !u!1 &368009916
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 368009917}
+  - component: {fileID: 368009920}
+  m_Layer: 5
+  m_Name: MultiplayerMenu
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &368009917
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 368009916}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children:
+  - {fileID: 438308807}
+  - {fileID: 1223392010}
+  - {fileID: 2101380173}
+  m_Father: {fileID: 1790301142}
+  m_RootOrder: 18
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 2319, y: -16}
+  m_SizeDelta: {x: 480, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &368009920
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 368009916}
   m_CullTransparentMesh: 0
 --- !u!1 &433148471
 GameObject:
@@ -1305,12 +1352,12 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1067071028}
-  m_Father: {fileID: 1790301142}
-  m_RootOrder: 18
+  m_Father: {fileID: 368009917}
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 1155, y: 143}
+  m_AnchoredPosition: {x: 0, y: 159.00002}
   m_SizeDelta: {x: 480, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &438308808
@@ -3006,7 +3053,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1790301143}
-        m_MethodName: ViewTopMenu
+        m_MethodName: ViewServerMenu
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -3568,7 +3615,18 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1790301143}
-        m_MethodName: ViewServerMaker
+        m_MethodName: ViewLoadingScreen
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 1790301143}
+        m_MethodName: ConnectSingleplayer
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -5355,12 +5413,12 @@ RectTransform:
   m_Children:
   - {fileID: 1665762205}
   - {fileID: 1565961167}
-  m_Father: {fileID: 1790301142}
-  m_RootOrder: 19
+  m_Father: {fileID: 368009917}
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 1155, y: -16}
+  m_AnchoredPosition: {x: 0, y: 0.000020980835}
   m_SizeDelta: {x: 480, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1223392011
@@ -7491,7 +7549,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -25.000027}
+  m_AnchoredPosition: {x: 0, y: -25.00003}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1565961168
@@ -7527,7 +7585,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: (Matchmaking coming soon)
+  m_Text: (Matchmaking coming soon, maybe)
 --- !u!222 &1565961169
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -8143,9 +8201,7 @@ RectTransform:
   - {fileID: 1596034295}
   - {fileID: 692272836}
   - {fileID: 72662430}
-  - {fileID: 438308807}
-  - {fileID: 1223392010}
-  - {fileID: 2101380173}
+  - {fileID: 368009917}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -8177,12 +8233,14 @@ MonoBehaviour:
   serverList: {fileID: 1466317877}
   options: {fileID: 1596034295}
   quitConfirmation: {fileID: 692272836}
+  serverMenu: {fileID: 368009917}
   hostButton: {fileID: 831112279}
   joinButton: {fileID: 2113454556}
   optionsButton: {fileID: 1076499012}
   quitButton: {fileID: 211570669}
   title: {fileID: 905256312}
   loadingText: {fileID: 1500121485}
+  loadingTextElement: {fileID: 1500121486}
   screenCenter: {fileID: 86855879}
   belowPos: {fileID: 8190208}
   abovePos: {fileID: 766205110}
@@ -9040,12 +9098,12 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1372674556}
-  m_Father: {fileID: 1790301142}
-  m_RootOrder: 20
+  m_Father: {fileID: 368009917}
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 1155, y: -175}
+  m_AnchoredPosition: {x: 0, y: -159.0002}
   m_SizeDelta: {x: 480, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2101380174
@@ -9092,7 +9150,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1790301143}
-        m_MethodName: ViewOptions
+        m_MethodName: ViewTopMenu
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -9304,18 +9362,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1790301143}
-        m_MethodName: JoinGame
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 1790301143}
-        m_MethodName: ViewLoadingScreen
+        m_MethodName: ViewServerMenu
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

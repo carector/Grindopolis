@@ -11,7 +11,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/TitleScreen.unity
     guid: 78cf4d9c9b1dec447903b88012fc44c0
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/GrindworldPhoton.unity
     guid: bff829b4527c17e4693bd24f149f979c
+  - enabled: 1
+    path: Assets/Scenes/MultiplayerArena.unity
+    guid: a8aef97a42a5a334e958ad0ec623b6aa
   m_configObjects: {}

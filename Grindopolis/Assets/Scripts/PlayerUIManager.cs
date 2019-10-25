@@ -34,7 +34,8 @@ public class PlayerUIManager : MonoBehaviour
     public Image screenBlackout;
 
     bool sidebarOpen;
-    bool canScroll;
+    bool scrollReset;
+    public bool canScroll = true;
     public int currentSidebarIndex;
     float sidebarOpenTime = 4;
 
@@ -191,7 +192,11 @@ public class PlayerUIManager : MonoBehaviour
         }
 
     }
-    IEnumerator DelayB
+
+    IEnumerator SidebarScroll()
+    {
+        yield return new WaitForSeconds(0.1f);
+    }
     void LerpSidebar(bool active)
     {
         if (active)

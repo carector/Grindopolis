@@ -21,7 +21,7 @@ public class GameManager : MonoBehaviourPunCallbacks
         {
             if(PlayerControllerRigidbody.LocalPlayerInstance == null) // Will be true by default if the scene we loaded into already has a player in it, which tells us we need to create a player
             {
-                PhotonNetwork.Instantiate(this.playerPrefab.name, new Vector3(Random.Range(-10, 10), 1.2f, Random.Range(-5, -15)), Quaternion.identity, 0);
+                PhotonNetwork.Instantiate(this.playerPrefab.name, new Vector3(Random.Range(-5, 5), 1.2f, Random.Range(-5, 5)), Quaternion.identity, 0);
             }
         }
     }

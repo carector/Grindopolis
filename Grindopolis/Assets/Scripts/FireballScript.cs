@@ -36,7 +36,15 @@ public class FireballScript : MonoBehaviourPunCallbacks
         if(other.gameObject.GetComponent<EnemyControl>() != null)
         {
             EnemyControl e = other.gameObject.GetComponent<EnemyControl>();
-            e.StartCoroutine(e.ReceiveFireDamage(8, this.transform));
+            e.ReceiveDamage(12, this.transform);
+
+            if (photonView.IsMine)
+                PhotonNetwork.Destroy(this.gameObject);
+        }
+        else if(other.gameObject.GetComponent<PlayerControllerRigidbody>() != null)
+        {
+            PlayerControllerRigidbody p = other.gameObject.GetComponent<PlayerControllerRigidbody>();
+            p.ReceiveDamage(12);
 
             if (photonView.IsMine)
                 PhotonNetwork.Destroy(this.gameObject);

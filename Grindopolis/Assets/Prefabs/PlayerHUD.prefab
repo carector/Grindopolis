@@ -94,6 +94,7 @@ MonoBehaviour:
   cashText: {fileID: 5362830239810341208}
   sidebarBackground: {fileID: 6163444178996101155}
   screenBlackout: {fileID: 3774111076984585074}
+  canScroll: 1
   currentSidebarIndex: 0
   magicMissleCountdown: 3
   healthBubbleCountdown: 13
