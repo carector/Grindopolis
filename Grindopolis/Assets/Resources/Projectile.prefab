@@ -4848,9 +4848,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3bdb681d00a58f34fb2a7852312dd949, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerRb: {fileID: 0}
+  player: {fileID: 0}
   startSpeed: 30
-  explosionRadius: 7.5
   explosionPower: 100
 --- !u!135 &688
 SphereCollider:

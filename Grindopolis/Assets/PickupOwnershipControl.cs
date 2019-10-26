@@ -9,10 +9,12 @@ public class PickupOwnershipControl : MonoBehaviourPunCallbacks, IPunObservable
     bool hasHitGround;
 
     Rigidbody rb;
+    AudioSource audio;
 
     public Vector3 difference;
     public Transform focusedTransform;
     public int collideDamage = 15;
+    public AudioClip bonk;
 
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
@@ -43,6 +45,7 @@ public class PickupOwnershipControl : MonoBehaviourPunCallbacks, IPunObservable
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        audio = GetComponent<AudioSource>();
     }
 
     // Update is called once per frame
@@ -102,6 +105,12 @@ public class PickupOwnershipControl : MonoBehaviourPunCallbacks, IPunObservable
         rb.useGravity = true;
     }
 
+    [PunRPC]
+    void RpcBonkSound()
+    {
+        audio.PlayOneShot(bonk);
+    }
+
     // Used to deal damage to enemies
     void OnTriggerEnter(Collider other)
     {
@@ -117,10 +126,10 @@ public class PickupOwnershipControl : MonoBehaviourPunCallbacks, IPunObservable
 
             e.StartCoroutine(e.ReceiveObjectDamage(collideDamage));
         }
-        else if(rb.velocity.magnitude >= 10 && other.gameObject.GetComponent<PlayerControllerRigidbody>() != null)
+        else if(rb.velocity.magnitude >= 10 && other.gameObject.GetComponent<PlayerControllerRigidbody>() != null && (other.name != "ClientPlayer"))
         {
             PlayerControllerRigidbody p = other.GetComponent<PlayerControllerRigidbody>();
-
+            photonView.RPC("RpcBonkSound", RpcTarget.All);
             p.ReceiveDamage(collideDamage);
         }
     }

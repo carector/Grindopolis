@@ -432,7 +432,7 @@ MonoBehaviour:
   ObservedComponents:
   - {fileID: 868}
   viewIdField: 0
-  InstantiationId: 0
+  InstantiationId: 4
   isRuntimeInstantiated: 0
 --- !u!114 &868
 MonoBehaviour:
@@ -608,10 +608,11 @@ MonoBehaviour:
     walkSpeed: 7
     maxVelocityChange: 10
   combatSettings:
-    health: 15
+    health: 100
     mana: 100
     cash: 0
     canAttack: 1
+    isDead: 0
   mVar:
     isCrouching: 0
     jumping: 0
@@ -655,7 +656,6 @@ MonoBehaviour:
   foot: {fileID: 8219321548620853309}
   outOfBounds: 0
   canUseSpell: 010101010101
-  isDead: 0
   groundCheckOffset: 1.01
   renderTextureCam: {fileID: 8396368023592990195}
   renderTextureImage: {fileID: 2617775854314125642}
@@ -711,7 +711,7 @@ MonoBehaviour:
   - {fileID: 822}
   - {fileID: 819}
   viewIdField: 0
-  InstantiationId: 0
+  InstantiationId: 5
   isRuntimeInstantiated: 0
 --- !u!114 &820
 MonoBehaviour:
@@ -5757,13 +5757,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 320}
-  m_LocalRotation: {x: -0, y: 0.6741389, z: -0, w: 0.7386046}
-  m_LocalPosition: {x: 0.67, y: -0.052, z: 0.645}
+  m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: -0.052, z: 1.235}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 377}
   m_RootOrder: 5
-  m_LocalEulerAnglesHint: {x: 0, y: 84.775, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
 --- !u!1 &356
 GameObject:
   m_ObjectHideFlags: 0
@@ -10733,7 +10733,7 @@ ParticleSystemRenderer:
   m_SortingFudge: 0
   m_NormalDirection: 1
   m_ShadowBias: 0
-  m_RenderAlignment: 3
+  m_RenderAlignment: 0
   m_Pivot: {x: 0, y: 0, z: 0}
   m_Flip: {x: 0, y: 0, z: 0}
   m_UseCustomVertexStreams: 0
@@ -10826,7 +10826,7 @@ MonoBehaviour:
   ObservedComponents:
   - {fileID: 816}
   viewIdField: 0
-  InstantiationId: 0
+  InstantiationId: 8
   isRuntimeInstantiated: 0
 --- !u!95 &662
 Animator:
@@ -11303,8 +11303,8 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7928598907251666613, guid: a44e602fd4bd6c04881cdde0c248ab8b,
         type: 3}
-      propertyPath: VelocityModule.y.scalar
-      value: 1
+      propertyPath: ColorModule.gradient.maxGradient.ctime1
+      value: 36430
       objectReference: {fileID: 0}
     - target: {fileID: 7928598907251666613, guid: a44e602fd4bd6c04881cdde0c248ab8b,
         type: 3}
@@ -11313,27 +11313,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7928598907251666613, guid: a44e602fd4bd6c04881cdde0c248ab8b,
         type: 3}
-      propertyPath: ColorModule.gradient.maxGradient.key1.a
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7928598907251666613, guid: a44e602fd4bd6c04881cdde0c248ab8b,
-        type: 3}
-      propertyPath: ColorModule.gradient.maxGradient.ctime1
-      value: 36430
-      objectReference: {fileID: 0}
-    - target: {fileID: 7928598907251666613, guid: a44e602fd4bd6c04881cdde0c248ab8b,
-        type: 3}
-      propertyPath: looping
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7928598907251666613, guid: a44e602fd4bd6c04881cdde0c248ab8b,
-        type: 3}
-      propertyPath: InitialModule.startColor.maxColor.a
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8514753252261253721, guid: a44e602fd4bd6c04881cdde0c248ab8b,
-        type: 3}
-      propertyPath: m_Enabled
+      propertyPath: VelocityModule.y.scalar
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8514753252261253721, guid: a44e602fd4bd6c04881cdde0c248ab8b,
@@ -11418,6 +11398,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1528852014670421360, guid: 34c2021f9d02f46449aff37d88344192,
         type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.5211899
+      objectReference: {fileID: 0}
+    - target: {fileID: 1528852014670421360, guid: 34c2021f9d02f46449aff37d88344192,
+        type: 3}
       propertyPath: m_LocalScale.y
       value: 0.5211902
       objectReference: {fileID: 0}
@@ -11425,11 +11410,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalScale.z
       value: 0.44275847
-      objectReference: {fileID: 0}
-    - target: {fileID: 1528852014670421360, guid: 34c2021f9d02f46449aff37d88344192,
-        type: 3}
-      propertyPath: m_LocalScale.x
-      value: 0.5211899
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 34c2021f9d02f46449aff37d88344192, type: 3}

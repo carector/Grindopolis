@@ -6,55 +6,30 @@ using Photon.Pun;
 
 public class FireballScript : MonoBehaviourPunCallbacks
 {
-    public Rigidbody playerRb;
+    public GameObject player;
     public float startSpeed;
-    public float explosionRadius = 5;
     public float explosionPower = 15;
-
     bool explode;
 
     // Start is called before the first frame update
     void Start()
     {
+        StartCoroutine(Countdown());
         GetComponent<Rigidbody>().AddRelativeForce(-startSpeed, 0, 0, ForceMode.Impulse);
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        if (explode)
-        {
-            
-            StartCoroutine(Countdown());
-        }
-
-
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        if(other.gameObject.GetComponent<EnemyControl>() != null)
+        if (photonView.IsMine && other.name != "ClientPlayer")
         {
-            EnemyControl e = other.gameObject.GetComponent<EnemyControl>();
-            e.ReceiveDamage(12, this.transform);
-
-            if (photonView.IsMine)
-                PhotonNetwork.Destroy(this.gameObject);
+            PhotonNetwork.Instantiate("ProjectileExplosion", transform.position, transform.rotation);
+            PhotonNetwork.Destroy(this.gameObject);
         }
-        else if(other.gameObject.GetComponent<PlayerControllerRigidbody>() != null)
-        {
-            PlayerControllerRigidbody p = other.gameObject.GetComponent<PlayerControllerRigidbody>();
-            p.ReceiveDamage(12);
-
-            if (photonView.IsMine)
-                PhotonNetwork.Destroy(this.gameObject);
-        }
-        explode = true;
     }
 
     IEnumerator Countdown()
     {
-        yield return new WaitForSeconds(1);
+        yield return new WaitForSeconds(5);
 
         if(photonView.IsMine)
             PhotonNetwork.Destroy(this.gameObject);

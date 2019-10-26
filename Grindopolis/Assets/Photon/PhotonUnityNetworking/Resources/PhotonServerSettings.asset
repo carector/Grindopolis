@@ -39,5 +39,6 @@ MonoBehaviour:
   - RpcUpdateOwnership
   - ClickRpc
   - DestroyRpc
+  - RpcBonkSound
   DisableAutoOpenWizard: 1
   ShowSettings: 0

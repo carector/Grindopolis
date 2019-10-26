@@ -26,7 +26,7 @@ public class TempleExplode : MonoBehaviour
                     c.GetComponent<Rigidbody>().isKinematic = false;
                     c.GetComponent<Rigidbody>().AddExplosionForce(2000, transform.position, 50);
                 }
-                else if(c.GetComponent<PlayerControllerRigidbody>() != null && c.GetComponent<PlayerControllerRigidbody>().isDead == false)
+                else if(c.GetComponent<PlayerControllerRigidbody>() != null && c.GetComponent<PlayerControllerRigidbody>().combatSettings.isDead == false)
                 {
                     c.GetComponent<PlayerControllerRigidbody>().ReceiveDamage(250);
                 }

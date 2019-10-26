@@ -23,6 +23,7 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
             //stream.SendNext(mVar.isPeeing);
 
             stream.SendNext(combatSettings.health);
+            stream.SendNext(combatSettings.isDead);
         }
         // Recieve data
         else
@@ -34,6 +35,7 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
             //mVar.isPeeing = (bool)stream.ReceiveNext();
 
             combatSettings.health = (int)stream.ReceiveNext();
+            combatSettings.isDead = (bool)stream.ReceiveNext();
         }
     }
 
@@ -77,6 +79,7 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
         public int mana;
         public float cash;
         public bool canAttack = true;
+        public bool isDead;
 
     }
 
@@ -138,7 +141,7 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
     bool isDeductingMana;
     bool isAddingMana;
     public bool[] canUseSpell;
-    public bool isDead;
+
 
     public float groundCheckOffset = 1.01f;
 
@@ -265,7 +268,7 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
         }
 
         // Check if our health is 0
-        if (!isDead)
+        if (!combatSettings.isDead)
         {
             if (movementSettings.isGrounded)
             {
@@ -273,7 +276,6 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
 
                 mVar.jumping = false;
                 mVar.doubleJumping = false;
-
 
                 // Jump
                 if (Input.GetButtonDown("Jump") && !uiMan.menuOpen)
@@ -298,7 +300,96 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
             }
             movementSettings.isGrounded = GroundCheck();
 
-            // Spellcast check
+            if (!uiMan.menuOpen)
+            {
+                // Attack input checks
+                if (Input.GetMouseButtonDown(0) && canUseSpell[0])
+                {
+                    GameObject proj = PhotonNetwork.Instantiate(this.fireballProjectile.name, projectilePosition.position, projectilePosition.rotation);
+                    proj.GetComponent<FireballScript>().player = this.gameObject;
+
+                    StartCoroutine(SpellDelay(0.3f, 0));
+                    uiMan.magicMissleCountdown = 0.3f;
+                    canUseSpell[0] = false;
+                }
+                // Levitate
+                else if (!Input.GetMouseButtonDown(0))
+                {
+                    if (heldObject != null && loopedAudio.clip != levitateSound)
+                    {
+                        loopedAudio.clip = levitateSound;
+                        loopedAudio.Play();
+                    }
+
+                    vortexPos.transform.rotation = Quaternion.identity;
+
+                    if (heldObject != null && Input.GetMouseButtonUp(1))
+                    {
+                        vortexPos.GetComponent<ParticleSystem>().startColor = Color.clear;
+
+                        staff.StaffEmissions(false);
+                        staff.VortexEmissions(false);
+
+                        heldObject.GetComponent<PhotonView>().RPC("RpcDropObject", RpcTarget.All, heldObject.transform.position, -transform.forward * 20);
+                        //heldObject.GetComponent<PickupOwnershipControl>().LaunchObject(heldObject.transform.position, -transform.forward * 20);
+                        heldObject = null;
+
+                        isHoldingObject = false;
+                    }
+                    /*
+                    else if(heldObject != null && (Input.GetMouseButtonUp(0) || heldObject.GetComponent<PickupOwnershipControl>().focusedTransform == null))
+                    {
+                        vortexPos.GetComponent<ParticleSystem>().startColor = Color.clear;
+
+                        staff.StaffEmissions(false);
+                        staff.VortexEmissions(false);
+
+                        heldObject.GetComponent<PickupOwnershipControl>().DropObject(heldObject.transform.position);
+                        heldObject = null;
+
+                        isHoldingObject = false;
+                    }
+                    */
+                    else if (Input.GetMouseButton(1) && combatSettings.mana > 0)
+                    {
+                        //if (!isDeductingMana)
+                        //StartCoroutine(DeductMana(0.2f, 1));
+
+                        staff.StaffEmissions(true);
+
+                        if (!isHoldingObject)
+                        {
+                            print("Raycasting");
+                            RaycastCheck();
+                        }
+                        else
+                        {
+                            //staff.VortexEmissions(true);
+                            loopedAudio.volume = Mathf.Lerp(loopedAudio.volume, 0.8f, 0.25f);
+                            float newPitch = 1 + (Vector3.Distance(vortexPos.position, heldObject.transform.position) / 5f);
+
+                            if (newPitch < 1.5f)
+                            {
+                                loopedAudio.pitch = newPitch;
+                            }
+                        }
+                    }
+
+                    if (!isHoldingObject)
+                    {
+                        loopedAudio.volume = Mathf.Lerp(loopedAudio.volume, 0, 0.25f);
+
+                        if (loopedAudio.volume <= 0.05f)
+                        {
+                            loopedAudio.Stop();
+                            loopedAudio.volume = 0;
+                            loopedAudio.clip = null;
+                        }
+                    }
+                }
+            }
+            /*
+            // Spellcast check - single player only, multi allows fireball and levitate standalone
             if (!uiMan.menuOpen)
             {
                 // Execute a different spell depending on what we currently have selected
@@ -316,6 +407,8 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
                         canUseSpell[0] = false;
                     }
                 }
+
+
 
                 // Illuminate
                 else if (uiMan.currentSidebarIndex == 1 && canUseSpell[1])
@@ -367,7 +460,7 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
 
                         isHoldingObject = false;
                     }
-                    */
+                    
                     else if (Input.GetMouseButton(1) && combatSettings.mana > 0)
                     {
                         //if (!isDeductingMana)
@@ -438,7 +531,7 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
                 // Reset light
                 if (uiMan.currentSidebarIndex != 1)
                     staffLight.intensity = Mathf.Lerp(staffLight.intensity, 0, 0.25f);
-            }
+            }*/
 
             // Recharge mana if we aren't holding the mouse
             if (!Input.GetMouseButton(0))
@@ -475,7 +568,7 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
     private void FixedUpdate()
     {
         // All content that doesn't require this to be the client's player goes here
-        if (!isDead)
+        if (!combatSettings.isDead)
         {
             // Set our color
             if (storedColor != mVar.playerMatIndex)
@@ -621,11 +714,11 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
         int horiz = 0;
         int vert = 0;
 
-        if(Input.GetKey(KeyCode.D))
+        if (Input.GetKey(KeyCode.D))
         {
             horiz = 1;
         }
-        else if(Input.GetKey(KeyCode.A))
+        else if (Input.GetKey(KeyCode.A))
         {
             horiz = -1;
         }
@@ -634,12 +727,12 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
         {
             vert = 1;
         }
-        else if(Input.GetKey(KeyCode.S))
+        else if (Input.GetKey(KeyCode.S))
         {
             vert = -1;
         }
 
-        if(vert != 0 || horiz != 0)
+        if (vert != 0 || horiz != 0)
         {
             rb.velocity = new Vector3(0, rb.velocity.y, 0);
         }
@@ -648,7 +741,7 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
 
         targetVelocity = transform.TransformDirection(targetVelocity).normalized;
 
-        if(Input.GetKey(KeyCode.LeftShift))
+        if (Input.GetKey(KeyCode.LeftShift))
         {
             targetVelocity *= movementSettings.runSpeed;
         }
@@ -732,7 +825,7 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
 
         if (Physics.Raycast(cam.transform.position, cam.transform.TransformDirection(Vector3.forward), out hit, 5f))
         {
-            if (heldObject == null && uiMan.currentSidebarIndex == 2 && hit.transform != vortexPos && hit.collider.tag == "Pickup" && Input.GetMouseButton(0))
+            if (heldObject == null && hit.transform != vortexPos && hit.collider.tag == "Pickup" && Input.GetMouseButton(1))
             {
                 // Since we can't directly control the pickup physics from each client, we have the pickup itself
                 // control the physics and just update the transform it's focusing on
@@ -767,7 +860,7 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
     public void ReceiveDamage(int damage)
     {
         combatSettings.health -= damage;
-        if (combatSettings.health <= 0 && !isDead)
+        if (combatSettings.health <= 0 && !combatSettings.isDead)
         {
             StartCoroutine(DeathSequence(Vector3.zero));
         }
@@ -782,63 +875,60 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
     // Death process
     public IEnumerator DeathSequence(Vector3 force)
     {
-        isDead = true;
-        PlaySFX(5);
-        rb.isKinematic = true;
-
-        // Send our camera flying
-        headCollider.isTrigger = true;
-
-        cam.GetComponent<PlayerLook>().enabled = false;
-        camRigidbody.isKinematic = false;
-        camCollider.isTrigger = false;
-        yield return new WaitForEndOfFrame();
-        camRigidbody.AddForce(force, ForceMode.VelocityChange);
-        camRigidbody.angularVelocity = force;
-
-        yield return new WaitForSeconds(4);
-        print("Finished delay");
-
-        while (uiMan.screenBlackout.color.a < 0.95f)
+        if (photonView.IsMine)
         {
-            uiMan.screenBlackout.color = new Color(0, 0, 0, uiMan.screenBlackout.color.a + 0.03f);
-            yield return null;
+            combatSettings.isDead = true;
+            PlaySFX(5);
+            rb.isKinematic = true;
+
+            // Send our camera flying
+            //headCollider.isTrigger = true;
+
+            cam.GetComponent<PlayerLook>().enabled = false;
+            //camRigidbody.isKinematic = false;
+            //camCollider.isTrigger = false;
+            yield return new WaitForEndOfFrame();
+            //camRigidbody.AddForce(force, ForceMode.VelocityChange);
+            //camRigidbody.angularVelocity = force;
+
+            yield return new WaitForSeconds(4);
+            //print("Finished delay");
+
+            while (uiMan.screenBlackout.color.a < 0.95f)
+            {
+                uiMan.screenBlackout.color = new Color(0, 0, 0, uiMan.screenBlackout.color.a + 0.08f);
+                yield return null;
+            }
+
+            uiMan.screenBlackout.color = Color.black;
+            yield return new WaitForSeconds(0.25f);
+
+            // Reset camera and fade in screen
+            transform.position = new Vector3(Random.Range(-10, 10), 1.2f, Random.Range(-5, -15));
+            transform.rotation = Quaternion.identity;
+
+            combatSettings.health = 100;
+            //camRigidbody.isKinematic = true;
+            //camRigidbody.angularVelocity = Vector3.zero;
+            //camRigidbody.velocity = Vector3.zero;
+            //camCollider.isTrigger = true;
+            //headCollider.isTrigger = false;
+
+            //cam.transform.localPosition = new Vector3(0, 1, 0);
+            //cam.transform.localRotation = Quaternion.identity;
+
+            while (uiMan.screenBlackout.color.a > 0.05f)
+            {
+                uiMan.screenBlackout.color = new Color(0, 0, 0, uiMan.screenBlackout.color.a - 0.08f);
+                yield return null;
+            }
+
+            uiMan.screenBlackout.color = Color.clear;
+            rb.isKinematic = false;
+            cam.GetComponent<PlayerLook>().enabled = true;
+
+            combatSettings.isDead = false;
         }
-
-        uiMan.screenBlackout.color = Color.black;
-        yield return new WaitForSeconds(0.25f);
-
-        // Reset camera and fade in screen
-        transform.position = new Vector3(Random.Range(-10, 10), 1.2f, Random.Range(-5, -15));
-        transform.rotation = Quaternion.identity;
-
-        camRigidbody.isKinematic = true;
-        camRigidbody.angularVelocity = Vector3.zero;
-        camRigidbody.velocity = Vector3.zero;
-        camCollider.isTrigger = true;
-        headCollider.isTrigger = false;
-
-        cam.transform.localPosition = new Vector3(0, 1, 0);
-        cam.transform.localRotation = Quaternion.identity;
-
-        while (uiMan.screenBlackout.color.a > 0.05f)
-        {
-            uiMan.screenBlackout.color = new Color(0, 0, 0, uiMan.screenBlackout.color.a - 0.03f);
-            yield return null;
-        }
-
-        uiMan.screenBlackout.color = Color.clear;
-
-        while (combatSettings.health < 100)
-        {
-            combatSettings.health += 1;
-            yield return null;
-        }
-
-        rb.isKinematic = false;
-        cam.GetComponent<PlayerLook>().enabled = true;
-
-        isDead = false;
     }
 
     void PlaySFX(int ind)
@@ -918,158 +1008,3 @@ public class PlayerControllerRigidbody : MonoBehaviourPunCallbacks, IPunObservab
 
     }
 }
-/*
-public float walkSpeed = 10.0f;
-    public float runSpeed = 10.0f;
-    public float gravity = 10.0f;
-    public float maxVelocityChange = 10.0f;
-    public bool canJump = true;
-    public float jumpHeight = 2.0f;
-
-    private bool hasDoubleJumped;
-    private bool grounded = false;
-
-    Rigidbody rb;
-
-    void Awake()
-    {
-        rb = GetComponent<Rigidbody>();
-        rb.freezeRotation = true;
-        rb.useGravity = false;
-    }
-
-    private void Update()
-    {
-        if (grounded)
-        {
-            Vector3 velocity = rb.velocity;
-
-            // Jump
-            if (canJump && Input.GetButtonDown("Jump"))
-            {
-                rb.velocity = new Vector3(velocity.x, CalculateJumpVerticalSpeed(), velocity.z);
-            }
-        }
-        else if(!hasDoubleJumped)
-        {
-            Vector3 velocity = rb.velocity;
-
-            // Jump
-            if (canJump && Input.GetButtonDown("Jump"))
-            {
-                rb.velocity = new Vector3(velocity.x, CalculateJumpVerticalSpeed(), velocity.z);
-                hasDoubleJumped = true;
-            }
-        }
-
-    }
-    void FixedUpdate()
-    {
-        if (grounded)
-        {
-            // Calculate how fast we should be moving
-            Vector3 targetVelocity = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
-            targetVelocity = transform.TransformDirection(targetVelocity);
-            targetVelocity *= walkSpeed;
-
-            // Apply a force that attempts to reach our target velocity
-            Vector3 velocity = rb.velocity;
-            Vector3 velocityChange = (targetVelocity - velocity);
-            velocityChange.x = Mathf.Clamp(velocityChange.x, -maxVelocityChange, maxVelocityChange);
-            velocityChange.z = Mathf.Clamp(velocityChange.z, -maxVelocityChange, maxVelocityChange);
-            velocityChange.y = 0;
-            rb.AddForce(velocityChange, ForceMode.Impulse);
-
-            hasDoubleJumped = false;
-        }
-        
-        else
-        {
-            // Calculate how fast we should be moving
-            Vector3 targetVelocity = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
-            targetVelocity = transform.TransformDirection(targetVelocity);
-            targetVelocity *= walkSpeed * 0.75f;
-
-            // Apply a force that attempts to reach our target velocity
-            Vector3 velocity = rb.velocity;
-            Vector3 velocityChange = (targetVelocity - velocity);
-            velocityChange.x = Mathf.Clamp(velocityChange.x, -maxVelocityChange, maxVelocityChange);
-            velocityChange.z = Mathf.Clamp(velocityChange.z, -maxVelocityChange, maxVelocityChange);
-            velocityChange.y = 0;
-            rb.AddForce(velocityChange);
-
-            rb.AddForce(velocityChange);
-        }
-        
-
-        // We apply gravity manually for more tuning control
-        rb.AddForce(new Vector3(0, -gravity * rb.mass, 0));
-
-        grounded = GroundCheck();
-    }
-
-    
-
-    float CalculateJumpVerticalSpeed()
-    {
-        // From the jump height and gravity we deduce the upwards speed 
-        // for the character to reach at the apex.
-        return Mathf.Sqrt(2 * jumpHeight * gravity);
-    }
-
-    void RaycastCheck()
-    {
-        RaycastHit hit;
-        Debug.DrawRay(cam.transform.position, cam.transform.TransformDirection(Vector3.forward * 2.5f), Color.red);
-
-        // Automatically disable crosshair - if something is hit, it will override this
-        uiMan.DisableCrosshair();
-
-        if (!isHoldingObject)
-            uiMan.DisplayHintText("");
-
-        if (Physics.Raycast(cam.transform.position, cam.transform.TransformDirection(Vector3.forward), out hit, 10))
-        {
-            if (hit.collider.tag == "Pickup" && !isHoldingObject)
-            {
-                uiMan.EnableCrosshair();
-                pickup = hit.collider.GetComponent<PickupScript>();
-
-                if (!pickup.isHeld && canPickupObjects)
-                {
-                    uiMan.EnableCrosshair();
-                    uiMan.DisplayHintText("Press E to pick up " + pickup.pickupName);
-
-                    if (Input.GetKeyDown(KeyCode.E))
-                    {
-                        uiMan.DisplayHintText("Press R to drop Press F to throw");
-                        heldObject = pickup.gameObject;
-
-                        PickupObject();
-
-                        isHoldingObject = true;
-                    }
-                }
-            }
-
-            else if (hit.collider.tag == "NPC" && !uiMan.dialogBoxOpen)
-            {
-                uiMan.EnableCrosshair();
-                InteractableNPC npc = hit.collider.GetComponent<InteractableNPC>();
-
-                uiMan.DisplayHintText("Press E to talk to " + npc.npcName);
-
-                if (Input.GetKeyDown(KeyCode.E))
-                {
-                    uiMan.DisplayDialog(npc);
-                }
-            }/*
-            else
-            {
-                uiMan.ResetDialogWindow();
-                uiMan.StopAllCoroutines();
-            }
-        }
-    }
-}
-*/
